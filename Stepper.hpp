@@ -25,7 +25,7 @@ namespace MOTOR
             Stepper(int numOfSteps, int pinDir, int pinStep) 
             : IMotor(MotorType::Stepper), numOfSteps(numOfSteps), pinDir(pinDir), pinStep(pinStep){} 
 
-            virtual ~Stepper() { disableMotor(); } // Custom destructor
+            ~Stepper() { disableMotor(); } // Custom destructor
 
             Stepper(const Stepper &) = delete; // Copy constructor
 
@@ -49,4 +49,4 @@ namespace MOTOR
             const int pinStep;
     };
 
-} // Motor
+} // MOTOR

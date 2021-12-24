@@ -26,11 +26,11 @@ namespace MOTOR
 
     class IMotor
     {
-    public:
-        IMotor(MotorType motorType) : motorInfo(motorType){}
-        virtual ~IMotor() = default;
-        virtual void enableMotor() = 0;
-        virtual void disableMotor() = 0;
-        const MotorInfo motorInfo;
+        public:
+            IMotor(MotorType motorType) : motorInfo(motorType){}
+            virtual ~IMotor() = default;
+            virtual void enableMotor() = 0;
+            virtual void disableMotor() = 0;
+            const MotorInfo motorInfo;
     };
 }
