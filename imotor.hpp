@@ -1,5 +1,5 @@
 /***********************************************************************
- * @file	:	IMotor.hpp
+ * @file	:	imotor.hpp
  * @brief 	:	Motor Interface
  * 				Definition of a motor interface to be independent of
  *              motor type

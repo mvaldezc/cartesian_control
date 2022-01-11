@@ -44,10 +44,10 @@ namespace Sample
             const double error_threshold_factor;
 
         public:
-            void init(repeating_timer_callback_t irq_handler)
+            void init(repeating_timer_callback_t irq_handler, void * user_data)
             {
                 #ifdef RASP_PICO
-                add_repeating_timer_us(-sampling_time_us, irq_handler, this, &sampling_timer);
+                add_repeating_timer_us(-sampling_time_us, irq_handler, user_data, &sampling_timer);
                 #endif
             }
 
