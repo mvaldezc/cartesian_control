@@ -16,8 +16,8 @@ namespace Motor
 {
     enum class MotorDirection : bool
     {
-        Clockwise = 0,
-        CounterClockwise = 1
+        CounterClockwise = 0,
+        Clockwise = 1
     };
 
     enum class MotorType : uint8_t
@@ -42,9 +42,12 @@ namespace Motor
             virtual ~IMotor() = default;
             virtual void enableMotor() = 0;
             virtual void disableMotor() = 0;
+            virtual void setDirection(MotorDirection direction) = 0;
             const MotorInfo motorInfo;
             volatile bool emergency_stop_flag = false;
             volatile bool enabled_flag = false;
+        
+        protected:
             volatile MotorDirection direction = MotorDirection::Clockwise;
     };
 }

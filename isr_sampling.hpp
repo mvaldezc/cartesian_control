@@ -44,6 +44,12 @@ namespace Sample
             const double error_threshold_factor;
 
         public:
+
+            /**
+             * @brief Initilize repeating timer and timer interruption.
+             * @param[in] irq_handler Function to call on each timer interruption.
+             * @param[in] user_data Pointer to data to pass to the irq_handler.
+             */
             void init(repeating_timer_callback_t irq_handler, void * user_data)
             {
                 #ifdef RASP_PICO
@@ -51,36 +57,43 @@ namespace Sample
                 #endif
             }
 
+            /**
+             * @brief Cancel repeating timer and timer interruption.
+             */
             void cancel(){
                 cancel_repeating_timer(&sampling_timer);
             }
 
+            /**
+             * @brief Check if the timer interrupt handler is called within the deadlines.
+             * @return True if timer has an acceptable period.
+             */
             inline bool isr_time_check()
             {
                 // Increment dicrete time counter
                 isr_data.k++;
 
-            // Get current time
-            #ifdef RASP_PICO
-            isr_data.current_time_us = time_us_64();
-            #endif
+                // Get current time
+                #ifdef RASP_PICO
+                isr_data.current_time_us = time_us_64();
+                #endif
 
-            // Update time variables
-            isr_data.dif_time_us = isr_data.current_time_us - isr_data.previous_time_us;
-            isr_data.previous_time_us = isr_data.current_time_us;
+                // Update time variables
+                isr_data.dif_time_us = isr_data.current_time_us - isr_data.previous_time_us;
+                isr_data.previous_time_us = isr_data.current_time_us;
 
-            // Check if timer is going to slow, then return an error
-            if (isr_data.dif_time_us > sampling_time_us * error_threshold_factor)
-            {
-                isr_data.isrBlockingCnt++;
-                if (isr_data.isrBlockingCnt > max_blocking_cycles)
+                // Check if timer is going to slow, then return an error
+                if (isr_data.dif_time_us > sampling_time_us * error_threshold_factor)
                 {
-                    isr_data.timer_error_flag = true;
-                    return false;
+                    isr_data.isrBlockingCnt++;
+                    if (isr_data.isrBlockingCnt > max_blocking_cycles)
+                    {
+                        isr_data.timer_error_flag = true;
+                        return false;
+                    }
                 }
+                return true;
             }
-            return true;
-        }
     };
 
 }

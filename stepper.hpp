@@ -19,7 +19,7 @@
 
 namespace Motor
 {
-    class Stepper : IMotor
+    class Stepper : public IMotor
     {
         public:
 
@@ -29,12 +29,13 @@ namespace Motor
              * @param[in] numOfSteps Motor's number of steps per revolution
              * @param[in] pinDir Board's pin connected to motor driver DIR
              * @param[in] pinStep Board's pin connected to motor driver STEP
+             * @param[in] pinEn Board's pin connected to motor driver ENABLE
              */
             Stepper(char* motorId, uint_fast16_t numOfSteps, uint pinDir, uint pinStep, uint pinEn)
             : IMotor(MotorType::Stepper, motorId), numOfSteps(numOfSteps), pinDir(pinDir), pinStep(pinStep)
             , pinEn(pinEn) {
-                mutex_init(&mutex);
-                this->init();
+                mutex_init(&mutex); // initialize mutex
+                this->initPins();       // run motor init method
             }
 
             ~Stepper() { this->disableMotor(); } // Custom destructor
@@ -43,15 +44,23 @@ namespace Motor
 
             Stepper & operator=(const Stepper &) = delete; //Copy assignment operator
 
+            /**
+             * @brief Advance one step
+             * @param[in] pulse_width_us Period of the pulse. Time between rising and falling edge.
+             * @return True if the step pulse was sent.
+             */ 
             bool step(uint64_t pulse_width_us);
 
             void enableMotor() override;
 
             void disableMotor() override;
 
-            void init();
+            void setDirection(MotorDirection direction) override;
 
         private:
+
+            void initPins();
+
             uint_fast16_t stepCntRel = 0;
             int32_t stepCntAbs = 0;
 
