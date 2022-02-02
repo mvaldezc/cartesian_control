@@ -10,9 +10,9 @@
 #include <stdint.h>
 #include "imotor.hpp"
 
-#include "pico/mutex.h"
 #define RASP_PICO
 #ifdef RASP_PICO
+#include "pico/mutex.h"
 #include "hardware/gpio.h"
 #include "hardware/timer.h"
 #endif
@@ -74,4 +74,4 @@ namespace Motor
             mutex_t mutex;
     };
 
-} // MOTOR
+} // namespace Motor

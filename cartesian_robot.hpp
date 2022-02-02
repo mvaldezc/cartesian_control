@@ -1,6 +1,6 @@
 #pragma once
 
-#include "trajectory_inter.hpp"
+#include "trajectory_gen.hpp"
 
 namespace CartesianRobot{
     //double w = 0;

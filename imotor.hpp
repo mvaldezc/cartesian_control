@@ -26,28 +26,23 @@ namespace Motor
         Servo = 1
     };
 
-    struct MotorInfo
-    {
-        MotorInfo(MotorType motorType, char* motorIdPtr) : motorType(motorType){
-            strncpy(this->motorId, motorIdPtr, 8);
-        }
-        MotorType motorType;
-        char motorId[8];
-    };
-
     class IMotor
     {
         public:
-            IMotor(MotorType motorType, char* motorId) : motorInfo(motorType, motorId){}
+            IMotor(MotorType motorType, char * motorId) : motorType(motorType) {
+                strncpy(this->motorId, motorId, 8);
+            }
             virtual ~IMotor() = default;
             virtual void enableMotor() = 0;
             virtual void disableMotor() = 0;
             virtual void setDirection(MotorDirection direction) = 0;
-            const MotorInfo motorInfo;
             volatile bool emergency_stop_flag = false;
             volatile bool enabled_flag = false;
+            const MotorType motorType;
+            const char motorId[8];
         
         protected:
             volatile MotorDirection direction = MotorDirection::Clockwise;
     };
-}
+
+} // namespace Motor
