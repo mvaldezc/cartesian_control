@@ -17,8 +17,8 @@
 #include "hardware/timer.h"
 #endif
 
-namespace Motor
-{
+namespace Motor {
+    
     class Stepper : public IMotor
     {
         public:
@@ -57,8 +57,9 @@ namespace Motor
 
             void setDirection(MotorDirection direction) override;
 
-        private:
+            void setHome() override;
 
+        private:
             void initPins();
 
             uint_fast16_t stepCntRel = 0;
@@ -70,7 +71,7 @@ namespace Motor
             const uint pinStep;
             const uint pinEn;
 
-            // Motor's exclusive access
+            // Motor's mutex
             mutex_t mutex;
     };
 

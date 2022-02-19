@@ -13,8 +13,7 @@
 #include "hardware/timer.h"
 #endif
 
-namespace Sampler
-{
+namespace Sampler {
 
     /** 
      * @brief Implementation of a periodic sampler using a timer interruption.
@@ -23,8 +22,8 @@ namespace Sampler
      */
     class TimerIsrSampler
     {
-        constexpr error_threshold_factor = 1.05;
-        constexpr max_blocking_cycles = 10;
+        static constexpr double error_threshold_factor = 1.1;
+        static constexpr unsigned int max_blocking_cycles = 10;
 
         public:
             TimerIsrSampler(uint64_t sampling_period_us) : sampling_period(sampling_period_us) {}
@@ -62,7 +61,10 @@ namespace Sampler
              * @brief Cancel repeating timer and timer interruption.
              */
             void cancel(){
+                #ifdef RASP_PICO
                 cancel_repeating_timer(&sampling_timer);
+                #endif
+                isrBlockingCnt = 0;
             }
 
             /**
@@ -98,4 +100,4 @@ namespace Sampler
             }
     };
 
-}
+} // namespace Sampler

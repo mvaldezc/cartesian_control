@@ -19,7 +19,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(step_control step_control.cpp stepper.cpp)
+add_executable(step_control step_control.cpp stepper.cpp trajectory_gen.cpp)
 
 pico_set_program_name(step_control "step_control")
 pico_set_program_version(step_control "0.1")

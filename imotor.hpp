@@ -12,8 +12,8 @@
 #include <string.h>
 
 
-namespace Motor
-{
+namespace Motor {
+    
     enum class MotorDirection : bool
     {
         CounterClockwise = 0,
@@ -36,13 +36,14 @@ namespace Motor
             virtual void enableMotor() = 0;
             virtual void disableMotor() = 0;
             virtual void setDirection(MotorDirection direction) = 0;
+            virtual void setHome() = 0;
             volatile bool emergency_stop_flag = false;
             volatile bool enabled_flag = false;
             const MotorType motorType;
-            const char motorId[8];
+            char motorId[8];
         
         protected:
-            volatile MotorDirection direction = MotorDirection::Clockwise;
+            volatile MotorDirection direction = MotorDirection::CounterClockwise;
     };
 
 } // namespace Motor

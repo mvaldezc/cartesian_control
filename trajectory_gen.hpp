@@ -1,5 +1,16 @@
+/***********************************************************************
+ * @file	:	trajectory_gen.hpp
+ * @brief 	:	Trajectory Generation Library
+ * 				Library to generate joint space trajectory interpolations
+ * @author	:	Marco Valdez @marcovc41
+ *
+ ***********************************************************************/
+
 #pragma once
 
+// This library assumes joint interpolation is the same as task interpolation for cartesian robots.
+// Proof:
+//
 // Time scaling w[t] ∈ [0,1]
 //   w[t] = a0 + a1*t + a2*t^2 + a3*t^3
 // Boundary values:
@@ -23,139 +34,182 @@
 namespace Algorithm {
 namespace TrajectoryGeneration {
 
-    enum class TrajectoryInterpolationType
-    {
-        linear_polynomial,
-        cubic_polynomial,
-        quintic_polynomial,
-        septic_polynomial
-    };
+        enum class InterpolationType
+        {
+            linear_polynomial,
+            cubic_polynomial,
+            quintic_polynomial,
+            septic_polynomial,
+            trapezoid_polynomial,
+            smooth_polynomial
+        };
 
-    typedef struct
-    {
-        TrajectoryInterpolationType path_type;
-        unsigned int pos_i;
-        unsigned int pos_f;
-        unsigned int time_f;
-    } path_t;
+        typedef struct // size: (3 words = 12 bytes = 96 bits)
+        {
+            unsigned int path_type : 5; // 32 types of movement
+            unsigned int dir_x : 1;     // 0 is CCW, 1 is CW
+            unsigned int dir_y : 1;     // 0 is CCW, 1 is CW
+            unsigned int dir_z : 1;     // 0 is CCW, 1 is CW
+            unsigned int time : 22;     // (1/4) ms, max 17 min for a single movement
+            unsigned int : 0;           // 2 bit padding
+            unsigned int pos_x : 16;    // steps, max 65535 steps or 320 revs
+            unsigned int pos_y : 16;    // steps, max 65535 steps or 320 revs
+            unsigned int pos_z : 16;    // steps, max 65535 steps or 320 revs
+            unsigned int : 0;           // 16 bit padding
+        } path_params_t;
 
-    class trajectory_segment_t
-    {
-        public:
-            trajectory_segment_t(unsigned int pos_i, unsigned int pos_f, unsigned int time_interval_sec)
-                : pos_i(pos_i), pos_f(pos_f), time_f(time_interval_sec) {}
+        typedef struct // size: (6 words = 24 bytes = 112 bits)
+        {
+            unsigned int path_type : 5; // 32 types of movement
+            unsigned int dir_x : 1;     // 0 is CCW, 1 is CW
+            unsigned int dir_y : 1;     // 0 is CCW, 1 is CW
+            unsigned int dir_z : 1;     // 0 is CCW, 1 is CW
+            unsigned int time : 22;    // (1/4) ms, max 17 min for a single movement
+            unsigned int : 0;          // 2 bit padding
+            unsigned int pos_x : 16;   // steps, max 65535 steps or 320 revs
+            unsigned int pos_y : 16;   // steps, max 65535 steps or 320 revs
+            unsigned int pos_z : 16;   // steps, max 65535 steps or 320 revs
+            unsigned int : 0;          // 16 bit padding
+            unsigned int vel_x_0 : 16; // (1/20) step/sec, max 3200 steps/sec
+            unsigned int vel_x_f : 16; // (1/20) step/sec, max 3200 steps/sec
+            unsigned int vel_y_0 : 16; // (1/20) step/sec, max 3200 steps/sec
+            unsigned int vel_y_f : 16; // (1/20) step/sec, max 3200 steps/sec
+            unsigned int vel_z_0 : 16; // (1/20) step/sec, max 3200 steps/sec
+            unsigned int vel_z_f : 16; // (1/20) step/sec, max 3200 steps/sec
+        } path_params_extended_t;
 
-            const unsigned int pos_i;
-            const unsigned int pos_f;
-            const unsigned int time_f;
-            virtual double poly_move(double time) = 0;
-    };
+        /**
+         * @brief Interface for motion description of a path segment.
+         */
+        class ITrajectoryInterpolation {
+            public:
+                ITrajectoryInterpolation(unsigned int delta_pos, double delta_time, double vel_0, double vel_f)
+                    : d_pos(delta_pos), d_time(delta_time), vel_0(vel_0), vel_f(vel_f) {}
 
-    class linear_segment_t : public trajectory_segment_t
-    {
-        public:
-            double a[2];
+                virtual ~ITrajectoryInterpolation() = default;
+                virtual double interpolateMotion(volatile double time) = 0;
 
-            linear_segment_t(unsigned int pos_i, unsigned int pos_f, unsigned int time_interval_sec)
-                : trajectory_segment_t(pos_i, pos_f, time_interval_sec) 
-            {
-                // Time scaling w[t] ∈ [0,1]
-                //   w[t] = a0 + a1*t
-                a[1] = (double)1 / time_f;
-            }
+                const unsigned int d_pos;
+                const double d_time;
+                const double vel_0;
+                const double vel_f;
+        };
 
-            double poly_move(double time) override{
-                return a[1] * time;
-            }
-    };
+        /**
+         * @brief Define a path segment with motion described by linear polynomial.
+         * It allows to specify position constraints at boundary values of the segment.
+         */ 
+        class LinearInterpolation : public ITrajectoryInterpolation {
+            public:
+                LinearInterpolation(unsigned int delta_pos, double delta_time);
 
-    class cubic_segment_t : public trajectory_segment_t
-    {
-        public:
-            double a[4];
+                /**
+                 * @brief Calculates time scaling for parametric motion based on a linear polynomial.
+                 * It achieves desired constraints (pos_0, pos_f) where pos_0 = 0.
+                 * @param[in] time Time in seconds.
+                 * @return Parameter w[t] = a0 + a1*t , w[t] ∈ [0,1]
+                 */
+                double interpolateMotion(volatile double time) override;
 
-            cubic_segment_t(unsigned int pos_i, unsigned int pos_f, unsigned int time_interval_sec)
-                : trajectory_segment_t(pos_i, pos_f, time_interval_sec)
-            {
-                // Time scaling w[t] ∈ [0,1]
-                //   w[t] = a0 + a1*t + a2*t^2 + a3*t^3
-                a[2] = (double)  3 / (time_f * time_f);
-                a[3] = (double) -2 / (time_f * time_f * time_f);
-            }
+            private:
+                double a[2]; // Polynomial coefficients
+        };
 
-            double poly_move(double time) override{
-                // return a[2] * time * time + a[3] * time * time * time;
-                return time * time * (a[2] + a[3] * time);
-            }
-    };
+        /**
+         * @brief Define a path segment with motion described by cubic polynomial.
+         * It allows to specify position and velocity constraints at boundary values of the segment.
+         */
+        class CubicInterpolation : public ITrajectoryInterpolation {
+            public:
+                CubicInterpolation(unsigned int delta_pos, double delta_time);
 
-    class quintic_segment_t : public trajectory_segment_t
-    {
-        public:
-            double a[6];
+                /**
+                 * @brief Calculates time scaling for parametric motion based on a third degree polynomial.
+                 * It achieves desired constraints (pos_0, pos_f, vel_0, vel_f) where pos_0 = 0.
+                 * @param[in] time Time in seconds.
+                 * @return Parameter w[t] = a0 + a1*t + a2*t^2 + a3*t^3 , w[t] ∈ [0,1]
+                 */
+                double interpolateMotion(volatile double time) override;
+            
+            private:
+                double a[4]; // Polynomial coefficients
+        };
 
-            quintic_segment_t(unsigned int pos_i, unsigned int pos_f, unsigned int time_interval_sec)
-                : trajectory_segment_t(pos_i, pos_f, time_interval_sec)
-            {
-                // Time scaling w[t] ∈ [0,1]
-                //   w[t] = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5
-                a[5] = (double) 6 / (time_f * time_f * time_f * time_f * time_f);
-                a[4] = (double)-5 / 2 * a[5] * time_f;
-                a[3] = (double) 5 / 3 * a[5] * (time_f * time_f);
-            }
+        /**
+         * @brief Define a path segment with motion described by quintic polynomial.
+         * It allows to specify position, velocity, and acceleration at boundary values of the segment.
+         */
+        class QuinticInterpolation : public ITrajectoryInterpolation {
+            public:
+                QuinticInterpolation(unsigned int delta_pos, double delta_time);
 
-            double poly_move(double time) override{
-                return time * time * time * (
-                    a[3] 
-                  + a[4] * time 
-                  + a[5] * time * time
-                );
-            }
-    };
+                /**
+                 * @brief Calculates time scaling for parametric motion based on a fifth degree polynomial.
+                 * It achieves desired constraints (pos_0, pos_f, vel_0, vel_f, accel_0, accel_f) 
+                 * where pos_0 = accel_0 = accel_f = 0.
+                 * @param[in] time Time in seconds.
+                 * @return Parameter w[t] = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5 , w[t] ∈ [0,1]
+                 */
+                double interpolateMotion(volatile double time) override;
+            
+            private:
+                double a[6]; // Polynomial coefficients
+        };
 
-    class septic_segment_t : public trajectory_segment_t
-    {
-        public:
-            double a[8];
+        /**
+         * @brief Define a path segment with motion described by septic polynomial.
+         * It allows to specify position, velocity, acceleration and jerk at boundary values of the segment.
+         */
+        class SepticInterpolation : public ITrajectoryInterpolation {
+            public:
+                SepticInterpolation(unsigned int delta_pos, double delta_time);
 
-            septic_segment_t(unsigned int pos_i, unsigned int pos_f, unsigned int time_interval_sec)
-                : trajectory_segment_t(pos_i, pos_f, time_interval_sec)
-            {
-                // Time scaling w[t] ∈ [0,1]
-                //   w[t] = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5 + a6*t^6 + a7*t^7
-                a[4] = (double) 35 / (time_f * time_f * time_f * time_f);
-                a[5] = (double)-12 / 5 * a[4] / time_f;
-                a[6] = (double) -5 / 6 * a[5] / time_f;
-                a[7] = (double) -2 / 7 * a[6] / time_f;
-            }
+                /**
+                 * @brief Calculates time scaling for parametric motion based on a seventh degree polynomial.
+                 * It achieves desired constraints (pos_0, pos_f, vel_0, vel_f, accel_0, accel_f, jerk_0, jerk_f)
+                 * where pos_0 = accel_0 = accel_f = jerk_0 = jerk_f = 0.
+                 * @param[in] time Time in seconds.
+                 * @return Parameter w[t] = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5 + a6*t^6 + a7*t^7 , w[t] ∈ [0,1]
+                 */
+                double interpolateMotion(volatile double time);
 
-            double poly_move(double time) override{
-                return time * time * time * time * (
-                    a[4] 
-                  + a[5] * time 
-                  + a[6] * time * time 
-                  + a[7] * time * time * time
-                );
-            }
-    };
+            private:
+                double a[8]; // Polynomial coefficients
+        };
 
-    class trapezoid_segment_t : public trajectory_segment_t
-    {
-        public:
-            trapezoid_segment_t(unsigned int pos_i, unsigned int pos_f, unsigned int time_interval_sec)
-                : trajectory_segment_t(pos_i, pos_f, time_interval_sec)
-            {
-                // Time scaling w[t] ∈ [0,1]
-                //   w[t] = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5 + a6*t^6 + a7*t^7
-                
-            }
+        class TrapezoidInterpolation : public ITrajectoryInterpolation {
+            public:
+                TrapezoidInterpolation(unsigned int delta_pos, unsigned int delta_time);
 
-            double poly_move(double time) override
-            {
-            }
+                double interpolateMotion(volatile double time) override;
+            
+            private:
+                double tb = 0;
+                double accel = 0;
+                double vel = 0;
+                double vel_max = 2000;
+                double return_val = 0;
+                double thb = 0;
+                bool check_flag = false;
+                bool activate_linear = false;
+        };
 
-            double a[8];
-    };
+        class SmoothInterpolation : public ITrajectoryInterpolation {
+            public:
+                SmoothInterpolation(unsigned int delta_pos, unsigned int delta_time);
+
+                double interpolateMotion(volatile double time) override;
+
+            private:
+                double a[8];
+                double tb = 0;
+                double vel = 0;
+                double vel_max = 2000;
+                double return_val = 0;
+                double thb = 0;
+                bool check_flag = false;
+                bool activate_linear = false;
+        };
 
 } // namespace TrajectoryGeneration
 } // namespace Algorithm

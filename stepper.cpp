@@ -1,7 +1,6 @@
 #include "stepper.hpp"
 
-namespace Motor
-{
+namespace Motor {
 
     bool Stepper::step(uint64_t pulse_width_us)
     {
@@ -39,7 +38,7 @@ namespace Motor
                     stepCntRel--;
                 }
             }
-            // Liberar el mutex
+            // Release the mutex
             mutex_exit(&mutex);
             return true;
         }
@@ -65,19 +64,35 @@ namespace Motor
     }
 
     void Stepper::initPins(){
+        #ifdef RASP_PICO
         gpio_init(pinEn);
         gpio_init(pinDir);
         gpio_init(pinStep);
-        gpio_put(pinEn, 1);
-        gpio_put(pinDir, 0);
+        gpio_put(pinEn, 1); // Initial En disabled
+        gpio_put(pinDir, 0); // Initial Dir CounterClockwise
         gpio_put(pinStep, 0);
         gpio_set_dir(pinEn, GPIO_OUT);
         gpio_set_dir(pinDir, GPIO_OUT);
         gpio_set_dir(pinStep, GPIO_OUT);
+        #endif
     }
 
     void Stepper::setDirection(MotorDirection direction){
         this->direction = direction;
+        #ifdef RASP_PICO
         gpio_put(pinDir, static_cast<bool>(direction));
+        #endif
     }
-}
+
+    void Stepper::setHome(){
+        // Acquire the mutex
+        uint32_t * mutex_owner;
+        if (mutex_try_enter(&mutex, mutex_owner)){
+            stepCntRel = 0;
+            stepCntAbs = 0;
+            // Release the mutex
+            mutex_exit(&mutex);
+        }
+    }
+
+} // namespace Motor
