@@ -1,3 +1,11 @@
+/***********************************************************************
+ * @file	:	stepper.cpp
+ * @brief 	:	Stepper Motor Library
+ * 				Library to control a stepper motor
+ * @author	:	Marco Valdez @marcovc41
+ *
+ ***********************************************************************/
+
 #include "stepper.hpp"
 
 namespace Motor {
@@ -5,7 +13,7 @@ namespace Motor {
     bool Stepper::step(uint64_t pulse_width_us)
     {
         // Return if motor is not enabled or emergency stop happened
-        if (!enabled_flag || emergency_stop_flag){
+        if (!enabledFlag){
             return false;
         }
 
@@ -48,7 +56,7 @@ namespace Motor {
     void Stepper::enableMotor(){
         #ifdef RASP_PICO
         // Set enabled flag in motor config register
-        enabled_flag = true;
+        enabledFlag = true;
         // Atomic bit set of enable pin, send enable signal to motor
         gpio_put(pinEn, 0);
         #endif
@@ -57,7 +65,7 @@ namespace Motor {
     void Stepper::disableMotor(){
         #ifdef RASP_PICO
         // Clear enabled flag in motor config register
-        enabled_flag = false;
+        enabledFlag = false;
         // Atomic bit clear of enable pin, send disable signal to motor
         gpio_put(pinEn, 1);
         #endif
@@ -93,6 +101,10 @@ namespace Motor {
             // Release the mutex
             mutex_exit(&mutex);
         }
+    }
+
+    int_fast32_t Stepper::getAbsPosition(){
+        return stepCntAbs;
     }
 
 } // namespace Motor

@@ -8,9 +8,8 @@
  ***********************************************************************/
 
 #pragma once
-#include <stdint.h>
+#include <cstdint>
 #include <string.h>
-
 
 namespace Motor {
     
@@ -20,30 +19,41 @@ namespace Motor {
         Clockwise = 1
     };
 
-    enum class MotorType : uint8_t
+    enum class MotorType
     {
         Stepper = 0,
         Servo = 1
     };
 
+    /**
+     * @interface IMotor
+     * @brief Motor driver interface.
+     */
     class IMotor
     {
         public:
-            IMotor(MotorType motorType, char * motorId) : motorType(motorType) {
-                strncpy(this->motorId, motorId, 8);
-            }
+            IMotor(MotorType motorType) : motorType(motorType) {}
             virtual ~IMotor() = default;
             virtual void enableMotor() = 0;
             virtual void disableMotor() = 0;
             virtual void setDirection(MotorDirection direction) = 0;
             virtual void setHome() = 0;
-            volatile bool emergency_stop_flag = false;
-            volatile bool enabled_flag = false;
-            const MotorType motorType;
-            char motorId[8];
-        
+            virtual int_fast32_t getAbsPosition() = 0;
+
+            bool isEnabled()
+            {
+                return enabledFlag;
+            }
+
+            MotorType getType()
+            {
+                return motorType;
+            }
+
         protected:
+            volatile bool enabledFlag = false;
             volatile MotorDirection direction = MotorDirection::CounterClockwise;
+            const MotorType motorType;
     };
 
 } // namespace Motor

@@ -7,7 +7,7 @@ set(CMAKE_CXX_STANDARD 17)
 
 # initalize pico_sdk from installed location
 # (note this can come from environment, CMake cache etc)
-set(PICO_SDK_PATH "/home/pi/pico/pico-sdk")
+set(PICO_SDK_PATH "/home/rasp/Documentos/pico/pico-sdk")
 
 # Pull in Raspberry Pi Pico SDK (must be before project)
 include(pico_sdk_import.cmake)
@@ -19,18 +19,34 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(step_control step_control.cpp stepper.cpp trajectory_gen.cpp)
+add_executable(step_control 
+        step_control.cpp 
+        src/Motor/stepper.cpp 
+        src/Algorithm/TrajectoryInterpolation/trajectory_gen.cpp
+        src/Communication/i2c_slave.cpp
+        state_manager.hpp
+)
 
 pico_set_program_name(step_control "step_control")
 pico_set_program_version(step_control "0.1")
 
 pico_enable_stdio_uart(step_control 1)
 
+# Add include path
+target_include_directories(step_control 
+        PRIVATE 
+        ${CMAKE_CURRENT_SOURCE_DIR}/inc/Algorithm/TrajectoryInterpolation
+        ${CMAKE_CURRENT_SOURCE_DIR}/inc/Motor
+        ${CMAKE_CURRENT_SOURCE_DIR}/inc/Sampler
+        ${CMAKE_CURRENT_SOURCE_DIR}/inc/Communication
+)
+
 # Add any user requested libraries
 target_link_libraries(step_control
         pico_stdlib
         pico_sync
         pico_multicore
+        hardware_i2c
 )
 
 pico_add_extra_outputs(step_control)

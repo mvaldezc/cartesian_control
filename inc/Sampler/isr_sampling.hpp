@@ -7,7 +7,8 @@
  ***********************************************************************/
 
 #pragma once
-#include <stdio.h>
+#include <cstdio>
+
 #define RASP_PICO
 #ifdef RASP_PICO
 #include "hardware/timer.h"
@@ -15,32 +16,32 @@
 
 namespace Sampler {
 
-    /** 
+    /**
+     * @class TimerIsrSampler
      * @brief Implementation of a periodic sampler using a timer interruption.
      * It executes a specified function each sampling time.
-     * It ensures a timer delay < 5% otherwise returns an error.
+     * It ensures a timer delay < 5% otherwise returns an error and stops.
+     * Sampling period range :  100 us  < T < 17 min
      */
     class TimerIsrSampler
     {
-        static constexpr double error_threshold_factor = 1.1;
-        static constexpr unsigned int max_blocking_cycles = 10;
+        static constexpr double ERROR_THRESHOLD_FACTOR = 1.1;
+        static constexpr unsigned int MAX_BLOCKING_CYCLES = 10;
 
         public:
-            TimerIsrSampler(uint64_t sampling_period_us) : sampling_period(sampling_period_us) {}
+            TimerIsrSampler(uint64_t sampling_period_us) : samplingPeriod(sampling_period_us) {}
 
             #ifdef RASP_PICO
             struct repeating_timer sampling_timer;
             #endif
 
-            volatile bool timer_error_flag = false; // flag for timer error
+            volatile bool errorFlag = false; // flag for timer error
 
         private:
-            const uint64_t sampling_period;
-            volatile int k = 0;                     // discrete time counter
-
-            volatile uint64_t previous_time_us = 0; // previous timestamp in microseconds
-            volatile uint64_t dif_time_us = 0;      // time difference between current and previous timestamps
-            volatile uint64_t current_time_us = 0;  // current time in microseconds
+            const uint64_t samplingPeriod;
+            volatile uint64_t currentTime_us = 0;  // current timestamp in microseconds
+            volatile uint64_t previousTime_us = 0; // previous timestamp in microseconds
+            volatile uint64_t deltaTime_us = 0;      // time difference between current and previous timestamps
             volatile int isrBlockingCnt = 0;        // counter for timer delays
 
         public:
@@ -53,7 +54,7 @@ namespace Sampler {
             void init(repeating_timer_callback_t irq_handler, void * user_data)
             {
                 #ifdef RASP_PICO
-                add_repeating_timer_us(-sampling_period, irq_handler, user_data, &sampling_timer);
+                add_repeating_timer_us(-samplingPeriod, irq_handler, user_data, &sampling_timer);
                 #endif
             }
 
@@ -71,27 +72,24 @@ namespace Sampler {
              * @brief Check if the timer interrupt handler is called within the deadlines.
              * @return True if timer has an acceptable period, with error < 5%.
              */
-            inline bool isr_time_check()
+            inline bool isrTimeCheck()
             {
-                // Increment dicrete time counter
-                k++;
-
                 // Get current time
                 #ifdef RASP_PICO
-                current_time_us = time_us_64();
+                currentTime_us = time_us_64();
                 #endif
 
                 // Update time variables
-                dif_time_us = current_time_us - previous_time_us;
-                previous_time_us = current_time_us;
+                deltaTime_us = currentTime_us - previousTime_us;
+                previousTime_us = currentTime_us;
 
                 // Check if timer is going to slow, then return an error
-                if (dif_time_us > sampling_period * error_threshold_factor)
+                if (deltaTime_us > samplingPeriod * ERROR_THRESHOLD_FACTOR)
                 {
                     isrBlockingCnt++;
-                    if (isrBlockingCnt > max_blocking_cycles)
+                    if (isrBlockingCnt > MAX_BLOCKING_CYCLES)
                     {
-                        timer_error_flag = true;
+                        errorFlag = true;
                         cancel_repeating_timer(&sampling_timer);
                         return false;
                     }
