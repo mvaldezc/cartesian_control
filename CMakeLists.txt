@@ -31,6 +31,7 @@ target_link_libraries(step_control
         pico_stdlib
         pico_sync
         pico_multicore
+        hardware_i2c
 )
 
 pico_add_extra_outputs(step_control)

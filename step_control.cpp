@@ -1,10 +1,14 @@
 #include <stdio.h>
-#include <string.h>
+#include <string.h> 
+#include <memory>
 #include "pico/stdlib.h"
+#include "hardware/i2c.h"
 #include "stepper.hpp"
 #include "isr_sampling.hpp"
 #include "trajectory_gen.hpp"
 #include "cartesian_robot.hpp"
+
+#define i2c_baud_rate 400000
 
 //================ Global variables definition ================
 char motor_x_id[8] = "motor_x", motor_y_id[8] = "motor_y", motor_z_id[8] = "motor_z";
@@ -17,11 +21,29 @@ int main()
 {
     stdio_init_all();
     printf("Uart init completed");
-    IMotor * motor_x = new Stepper(motor_x_id, 200, 4, 5, 6);
-    IMotor * motor_y = new Stepper(motor_y_id, 200, 7, 8, 9);
-    IMotor * motor_z = new Stepper(motor_z_id, 200, 10, 11, 12);
 
-    CartesianRobotClient robot(motor_x, motor_y, motor_z);
+    #if !defined(i2c_default) || !defined(PICO_DEFAULT_I2C_SDA_PIN) || !defined(PICO_DEFAULT_I2C_SCL_PIN)
+    #error i2c software component requires a board with I2C pins
+    #endif
+    // Use I2C0 on the default SDA and SCL pins (GP4, GP5 on a Pico)
+    i2c_init(i2c_default, i2c_baud_rate);
+    gpio_set_function(PICO_DEFAULT_I2C_SDA_PIN, GPIO_FUNC_I2C);
+    gpio_set_function(PICO_DEFAULT_I2C_SCL_PIN, GPIO_FUNC_I2C);
+    gpio_pull_up(PICO_DEFAULT_I2C_SDA_PIN);
+    gpio_pull_up(PICO_DEFAULT_I2C_SCL_PIN);
+    i2c_set_slave_mode(i2c0, true, 2);
+    uint8_t i2c_buffer[2] = {0,0};
+    while(true){
+        i2c_read_raw_blocking(i2c0, i2c_buffer, 1);
+        i2c_write_raw_blocking(i2c0, i2c_buffer, 1);
+    }
+
+    /*
+    std::shared_ptr<IMotor> motor_x(new Stepper(motor_x_id, 200, 4, 5, 6));
+    std::shared_ptr<IMotor> motor_y(new Stepper(motor_y_id, 200, 7, 8, 9));
+    std::shared_ptr<IMotor> motor_z(new Stepper(motor_z_id, 200, 10, 11, 12));
+
+    CartesianRobotClient welding_system(motor_x, motor_y, motor_z);
 
     path_params_t via_points[5] = {
         {.path_type = static_cast<char>(InterpolationType::smooth_polynomial),
@@ -66,10 +88,12 @@ int main()
          .pos_z = 0}};
 
     printf("Starting trajectory");
-    robot.execute_routine(5, via_points);
+    welding_system.execute_routine(5, via_points);
     printf("Motor disabled");
 
-    while(true);
+    
 
+    while (true);
+    */
     return 0;
 }
