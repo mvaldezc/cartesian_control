@@ -1,3 +1,11 @@
+/***********************************************************************
+ * @file	:	stepper.cpp
+ * @brief 	:	Stepper Motor Library
+ * 				Library to control a stepper motor
+ * @author	:	Marco Valdez @marcovc41
+ *
+ ***********************************************************************/
+
 #include "stepper.hpp"
 
 namespace Motor {

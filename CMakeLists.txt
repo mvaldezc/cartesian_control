@@ -19,12 +19,15 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(step_control step_control.cpp stepper.cpp trajectory_gen.cpp)
+add_executable(step_control step_control.cpp src/stepper.cpp trajectory_gen.cpp)
 
 pico_set_program_name(step_control "step_control")
 pico_set_program_version(step_control "0.1")
 
 pico_enable_stdio_uart(step_control 1)
+
+# Add include path
+target_include_directories(step_control PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/inc)
 
 # Add any user requested libraries
 target_link_libraries(step_control

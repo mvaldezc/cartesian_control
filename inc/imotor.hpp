@@ -8,9 +8,8 @@
  ***********************************************************************/
 
 #pragma once
-#include <stdint.h>
+#include <cstdint>
 #include <string.h>
-
 
 namespace Motor {
     
@@ -26,11 +25,15 @@ namespace Motor {
         Servo = 1
     };
 
+    /**
+     * @interface IMotor
+     * @brief Motor driver interface.
+     */
     class IMotor
     {
         public:
             IMotor(MotorType motorType, char * motorId) : motorType(motorType) {
-                strncpy(this->motorId, motorId, 8);
+                strncpy(this->motorId, motorId, 8); // Add motor ID
             }
             virtual ~IMotor() = default;
             virtual void enableMotor() = 0;
