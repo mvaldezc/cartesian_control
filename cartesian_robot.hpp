@@ -72,22 +72,22 @@ class CartesianRobotClient
         {
             // Allocate interpolation class in heap depending on interpolation type.
             switch (path_type) {
-                case InterpolationType::linear_polynomial:
+                case InterpolationType::LinearPoly:
                     path_segment_ptr = new LinearInterpolation(delta_pos, delta_time);
                     break;
-                case InterpolationType::cubic_polynomial:
+                case InterpolationType::CubicPoly:
                     path_segment_ptr = new CubicInterpolation(delta_pos, delta_time);
                     break;
-                case InterpolationType::quintic_polynomial:
+                case InterpolationType::QuinticPoly:
                     path_segment_ptr = new QuinticInterpolation(delta_pos, delta_time);
                     break;
-                case InterpolationType::septic_polynomial:
+                case InterpolationType::SepticPoly:
                     path_segment_ptr = new SepticInterpolation(delta_pos, delta_time);
                     break;
-                case InterpolationType::trapezoid_polynomial:
+                case InterpolationType::TrapezoidPoly:
                     path_segment_ptr = new TrapezoidInterpolation(delta_pos, delta_time);
                     break;
-                case InterpolationType::smooth_polynomial:
+                case InterpolationType::SmoothPoly:
                     path_segment_ptr = new SmoothInterpolation(delta_pos, delta_time);
                     break;
             }
@@ -126,7 +126,7 @@ class CartesianRobotClient
             {
                 set_trajectory_buffer();
                 motor_sampler.init(move_motor_callback, this);
-                while (!motor_sampler.timer_error_flag && !finished);
+                while (!motor_sampler.errorFlag && !finished);
                 motor_sampler.cancel();
                 clean_trajectory_buffer(); 
                 k = 0;
@@ -202,7 +202,7 @@ class CartesianRobotClient
 bool move_motor_callback(struct repeating_timer *t)
 {
     // If something is wrong with the timer, return false
-    if (!motor_sampler.isr_time_check())
+    if (!motor_sampler.isrTimeCheck())
     {
         return false;
     }

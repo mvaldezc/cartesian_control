@@ -35,8 +35,8 @@ namespace Motor {
              * @param[in] pinStep    Board's pin connected to motor driver STEP
              * @param[in] pinEn      Board's pin connected to motor driver ENABLE
              */
-            Stepper(char* motorId, uint_fast16_t numOfSteps, uint pinDir, uint pinStep, uint pinEn)
-            : IMotor(MotorType::Stepper, motorId), numOfSteps(numOfSteps), pinDir(pinDir), pinStep(pinStep)
+            Stepper(uint_fast16_t numOfSteps, uint pinDir, uint pinStep, uint pinEn)
+            : IMotor(MotorType::Stepper), numOfSteps(numOfSteps), pinDir(pinDir), pinStep(pinStep)
               , pinEn(pinEn) 
             {
                 mutex_init(&mutex);     // Initialize mutex
@@ -86,8 +86,8 @@ namespace Motor {
             void initPins();
 
             // Motos state variables
-            uint_fast16_t stepCntRel = 0;
-            int32_t stepCntAbs = 0;
+            volatile int_fast32_t stepCntAbs = 0;
+            volatile uint_fast16_t stepCntRel = 0;
 
             // Motor configuration variables
             const uint_fast16_t numOfSteps;

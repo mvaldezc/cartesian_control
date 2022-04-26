@@ -28,7 +28,7 @@
 //   Px = α * θx
 //   Py = β * θy
 // Since it is linear -> interpolation in task space is equivalent to joint space
-//   θx[w[t]] = Px/α = (θxf - θxo) * w + θxo
+//   θx[w[t]] = Px/α = (θxf - θxo) * w + θxo LinearPoly
 //   θy[w[t]] = Py/β = (θyf - θyo) * w + θyo
 
 namespace Algorithm {
@@ -36,12 +36,12 @@ namespace TrajectoryGeneration {
 
         enum class InterpolationType
         {
-            linear_polynomial,
-            cubic_polynomial,
-            quintic_polynomial,
-            septic_polynomial,
-            trapezoid_polynomial,
-            smooth_polynomial
+            LinearPoly,
+            CubicPoly,
+            QuinticPoly,
+            SepticPoly,
+            TrapezoidPoly,
+            SmoothPoly
         };
 
         typedef struct // size: (3 words = 12 bytes = 96 bits)

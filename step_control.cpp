@@ -39,14 +39,14 @@ int main()
     }
 
     /*
-    std::shared_ptr<IMotor> motor_x(new Stepper(motor_x_id, 200, 4, 5, 6));
-    std::shared_ptr<IMotor> motor_y(new Stepper(motor_y_id, 200, 7, 8, 9));
-    std::shared_ptr<IMotor> motor_z(new Stepper(motor_z_id, 200, 10, 11, 12));
+    std::shared_ptr<IMotor> motor_x(new Stepper(200, 4, 5, 6));
+    std::shared_ptr<IMotor> motor_y(new Stepper(200, 7, 8, 9));
+    std::shared_ptr<IMotor> motor_z(new Stepper(200, 10, 11, 12));
 
     CartesianRobotClient welding_system(motor_x, motor_y, motor_z);
 
     path_params_t via_points[5] = {
-        {.path_type = static_cast<char>(InterpolationType::smooth_polynomial),
+        {.path_type = static_cast<char>(InterpolationType::SmoothPoly),
          .dir_x = static_cast<bool>(MotorDirection::Clockwise),
          .dir_y = static_cast<bool>(MotorDirection::CounterClockwise),
          .dir_z = static_cast<bool>(MotorDirection::Clockwise),
@@ -54,7 +54,7 @@ int main()
          .pos_x = 4000,
          .pos_y = 4000,
          .pos_z = 0},
-        {.path_type = static_cast<char>(InterpolationType::trapezoid_polynomial),
+        {.path_type = static_cast<char>(InterpolationType::TrapezoidPoly),
          .dir_x = static_cast<bool>(MotorDirection::Clockwise),
          .dir_y = static_cast<bool>(MotorDirection::Clockwise),
          .dir_z = static_cast<bool>(MotorDirection::Clockwise),
@@ -62,7 +62,7 @@ int main()
          .pos_x = 500,
          .pos_y = 0,
          .pos_z = 0},
-        {.path_type = static_cast<char>(InterpolationType::trapezoid_polynomial),
+        {.path_type = static_cast<char>(InterpolationType::TrapezoidPoly),
          .dir_x = static_cast<bool>(MotorDirection::Clockwise),
          .dir_y = static_cast<bool>(MotorDirection::Clockwise),
          .dir_z = static_cast<bool>(MotorDirection::Clockwise),
@@ -70,7 +70,7 @@ int main()
          .pos_x = 0,
          .pos_y = 500,
          .pos_z = 0},
-        {.path_type = static_cast<char>(InterpolationType::smooth_polynomial),
+        {.path_type = static_cast<char>(InterpolationType::SmoothPoly),
          .dir_x = static_cast<bool>(MotorDirection::CounterClockwise),
          .dir_y = static_cast<bool>(MotorDirection::CounterClockwise),
          .dir_z = static_cast<bool>(MotorDirection::Clockwise),
@@ -78,7 +78,7 @@ int main()
          .pos_x = 4000,
          .pos_y = 4000,
          .pos_z = 0},
-        {.path_type = static_cast<char>(InterpolationType::smooth_polynomial),
+        {.path_type = static_cast<char>(InterpolationType::SmoothPoly),
          .dir_x = static_cast<bool>(MotorDirection::CounterClockwise),
          .dir_y = static_cast<bool>(MotorDirection::CounterClockwise),
          .dir_z = static_cast<bool>(MotorDirection::Clockwise),

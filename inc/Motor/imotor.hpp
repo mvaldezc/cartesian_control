@@ -32,21 +32,30 @@ namespace Motor {
     class IMotor
     {
         public:
-            IMotor(MotorType motorType, char * motorId) : motorType(motorType) {
-                strncpy(this->motorId, motorId, 8); // Add motor ID
-            }
+            IMotor(MotorType motorType) : motorType(motorType) {}
             virtual ~IMotor() = default;
             virtual void enableMotor() = 0;
             virtual void disableMotor() = 0;
             virtual void setDirection(MotorDirection direction) = 0;
             virtual void setHome() = 0;
-            volatile bool emergency_stop_flag = false;
-            volatile bool enabled_flag = false;
-            const MotorType motorType;
-            char motorId[8];
-        
+
+            bool isEnabled()
+            {
+                return enabledFlag;
+            }
+            char* getId()
+            {
+                return motorId;
+            }
+            MotorType getType()
+            {
+                return motorType;
+            }
+
         protected:
+            volatile bool enabledFlag = false;
             volatile MotorDirection direction = MotorDirection::CounterClockwise;
+            const MotorType motorType;
     };
 
 } // namespace Motor
