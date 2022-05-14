@@ -19,7 +19,7 @@ namespace Motor {
         Clockwise = 1
     };
 
-    enum class MotorType : uint8_t
+    enum class MotorType
     {
         Stepper = 0,
         Servo = 1

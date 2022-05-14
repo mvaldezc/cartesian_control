@@ -85,7 +85,7 @@ namespace Motor {
              */
             void initPins();
 
-            // Motos state variables
+            // Motor state variables
             volatile int_fast32_t stepCntAbs = 0;
             volatile uint_fast16_t stepCntRel = 0;
 

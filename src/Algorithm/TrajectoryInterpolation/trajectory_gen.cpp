@@ -13,7 +13,7 @@ namespace TrajectoryGeneration {
         a[1] = (double) 1 / d_time;
     }
 
-    double LinearInterpolation::interpolateMotion(volatile double time)
+    double LinearInterpolation::interpolateMotion(double time)
     {
         return a[1] * time;
     }
@@ -29,7 +29,7 @@ namespace TrajectoryGeneration {
         a[3] = (double)-2 / (d_time * d_time * d_time);
     }
 
-    double CubicInterpolation::interpolateMotion(volatile double time)
+    double CubicInterpolation::interpolateMotion(double time)
     {
         return a[2] * time * time + a[3] * time * time * time;
     }
@@ -46,7 +46,7 @@ namespace TrajectoryGeneration {
         a[3] = (double)10 / (d_time * d_time * d_time);
     }
 
-    double QuinticInterpolation::interpolateMotion(volatile double time)
+    double QuinticInterpolation::interpolateMotion(double time)
     {
         return time * time * time * (a[3] + a[4] * time + a[5] * time * time);
     }
@@ -65,7 +65,7 @@ namespace TrajectoryGeneration {
         a[7] = (double)-2 / 7 * a[6] / d_time;
     }
 
-    double SepticInterpolation::interpolateMotion(volatile double time)
+    double SepticInterpolation::interpolateMotion(double time)
     {
         return time * time * time * time * (a[4] + a[5] * time + a[6] * time * time + a[7] * time * time * time);
     }
@@ -111,7 +111,7 @@ namespace TrajectoryGeneration {
         }
     }
 
-    double TrapezoidInterpolation::interpolateMotion(volatile double time)
+    double TrapezoidInterpolation::interpolateMotion(double time)
     {
         if (check_flag == true)
         {
@@ -173,7 +173,7 @@ namespace TrajectoryGeneration {
         }
     }
 
-    double SmoothInterpolation::interpolateMotion(volatile double time)
+    double SmoothInterpolation::interpolateMotion(double time)
     {
         if (check_flag == true)
         {
@@ -202,6 +202,33 @@ namespace TrajectoryGeneration {
             return vel * time;
         }
         return 0.0;
+    }
+
+    void InterpolationFactory::create(ITrajectoryInterpolation *&path_segment_ptr,
+        InterpolationType path_type, unsigned int delta_pos, double delta_time)
+    {
+        // Allocate interpolation class in heap depending on interpolation type.
+        switch (path_type)
+        {
+            case InterpolationType::LinearPoly:
+                path_segment_ptr = new LinearInterpolation(delta_pos, delta_time);
+                break;
+            case InterpolationType::CubicPoly:
+                path_segment_ptr = new CubicInterpolation(delta_pos, delta_time);
+                break;
+            case InterpolationType::QuinticPoly:
+                path_segment_ptr = new QuinticInterpolation(delta_pos, delta_time);
+                break;
+            case InterpolationType::SepticPoly:
+                path_segment_ptr = new SepticInterpolation(delta_pos, delta_time);
+                break;
+            case InterpolationType::TrapezoidPoly:
+                path_segment_ptr = new TrapezoidInterpolation(delta_pos, delta_time);
+                break;
+            case InterpolationType::SmoothPoly:
+                path_segment_ptr = new SmoothInterpolation(delta_pos, delta_time);
+                break;
+        }
     }
 
 } // namespace TrajectoryGeneration

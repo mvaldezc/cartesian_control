@@ -20,7 +20,8 @@ namespace Sampler {
      * @class TimerIsrSampler
      * @brief Implementation of a periodic sampler using a timer interruption.
      * It executes a specified function each sampling time.
-     * It ensures a timer delay < 5% otherwise returns an error.
+     * It ensures a timer delay < 5% otherwise returns an error and stops.
+     * Sampling period range :  100 us  < T < 17 min
      */
     class TimerIsrSampler
     {

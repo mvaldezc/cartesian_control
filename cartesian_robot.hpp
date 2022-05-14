@@ -2,6 +2,7 @@
 
 #include <memory>
 #include "trajectory_gen.hpp"
+#include "trajectory_data.hpp"
 #include "stepper.hpp"
 #include "isr_sampling.hpp"
 
@@ -54,43 +55,22 @@ class CartesianRobotClient
          */
         void set_trajectory_buffer() 
         {
-            set_buffer(motor_x.get(), path_segment_buffer[0], static_cast<InterpolationType>(next_path->path_type), next_path->pos_x, static_cast<MotorDirection>(next_path->dir_x), (next_path->time) / 4000.0);
-            set_buffer(motor_y.get(), path_segment_buffer[1], static_cast<InterpolationType>(next_path->path_type), next_path->pos_y, static_cast<MotorDirection>(next_path->dir_y), (next_path->time) / 4000.0);
-            set_buffer(motor_z.get(), path_segment_buffer[2], static_cast<InterpolationType>(next_path->path_type), next_path->pos_z, static_cast<MotorDirection>(next_path->dir_z), (next_path->time) / 4000.0);
+            InterpolationFactory::create(path_segment_buffer[0], static_cast<InterpolationType>(next_path->path_type), next_path->pos_x, (next_path->time) / 4000.0);
+            InterpolationFactory::create(path_segment_buffer[1], static_cast<InterpolationType>(next_path->path_type), next_path->pos_y, (next_path->time) / 4000.0);
+            InterpolationFactory::create(path_segment_buffer[2], static_cast<InterpolationType>(next_path->path_type), next_path->pos_z, (next_path->time) / 4000.0);
+            set_motor_direction(motor_x.get(), static_cast<MotorDirection>(next_path->dir_x));
+            set_motor_direction(motor_y.get(), static_cast<MotorDirection>(next_path->dir_y));
+            set_motor_direction(motor_z.get(), static_cast<MotorDirection>(next_path->dir_z));
         }
 
         /**
-         * @brief Prepare trajectory interpolation for a specific axis and prepare motor direction.
+         * @brief Prepare motor direction.
          * @param[in] motor Motor pointer.
-         * @param[out] path_segment_ptr Pointer to trajectory interpolation that will be used in next path.
-         * @param[in] path_type Type of the next required interpolation.
-         * @param[in] delta_pos Amount of steps for next path_segment.
-         * @param[in] delta_time Amount of time for next_path_segment.
+         * @param[in] dir Amount of time for next_path_segment.
          */
-        void set_buffer(IMotor * motor, ITrajectoryInterpolation * & path_segment_ptr, InterpolationType path_type, 
-                        unsigned int delta_pos, MotorDirection dir, double delta_time)
+        void set_motor_direction(IMotor * motor, MotorDirection dir)
         {
-            // Allocate interpolation class in heap depending on interpolation type.
-            switch (path_type) {
-                case InterpolationType::LinearPoly:
-                    path_segment_ptr = new LinearInterpolation(delta_pos, delta_time);
-                    break;
-                case InterpolationType::CubicPoly:
-                    path_segment_ptr = new CubicInterpolation(delta_pos, delta_time);
-                    break;
-                case InterpolationType::QuinticPoly:
-                    path_segment_ptr = new QuinticInterpolation(delta_pos, delta_time);
-                    break;
-                case InterpolationType::SepticPoly:
-                    path_segment_ptr = new SepticInterpolation(delta_pos, delta_time);
-                    break;
-                case InterpolationType::TrapezoidPoly:
-                    path_segment_ptr = new TrapezoidInterpolation(delta_pos, delta_time);
-                    break;
-                case InterpolationType::SmoothPoly:
-                    path_segment_ptr = new SmoothInterpolation(delta_pos, delta_time);
-                    break;
-            }
+            TrajectoryInterpolationFactory()
             // Prepare motor direction.
             motor->setDirection(dir);
         }

@@ -8,10 +8,10 @@
 #include "trajectory_gen.hpp"
 #include "cartesian_robot.hpp"
 
-#define i2c_baud_rate 400000
+#define i2c_baud_rate 115200
+#define i2c_slave_addr 0x02
 
 //================ Global variables definition ================
-char motor_x_id[8] = "motor_x", motor_y_id[8] = "motor_y", motor_z_id[8] = "motor_z";
 
 using namespace Algorithm::TrajectoryGeneration;
 using namespace Motor;
@@ -31,10 +31,11 @@ int main()
     gpio_set_function(PICO_DEFAULT_I2C_SCL_PIN, GPIO_FUNC_I2C);
     gpio_pull_up(PICO_DEFAULT_I2C_SDA_PIN);
     gpio_pull_up(PICO_DEFAULT_I2C_SCL_PIN);
-    i2c_set_slave_mode(i2c0, true, 2);
-    uint8_t i2c_buffer[2] = {0,0};
+    i2c_set_slave_mode(i2c0, true, i2c_slave_addr);
+    uint8_t i2c_buffer[0] = {0};
     while(true){
         i2c_read_raw_blocking(i2c0, i2c_buffer, 1);
+        i2c_buffer++;
         i2c_write_raw_blocking(i2c0, i2c_buffer, 1);
     }
 
