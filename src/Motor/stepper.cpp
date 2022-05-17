@@ -103,4 +103,8 @@ namespace Motor {
         }
     }
 
+    int_fast32_t Stepper::getAbsPosition(){
+        return stepCntAbs;
+    }
+
 } // namespace Motor

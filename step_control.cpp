@@ -15,7 +15,7 @@
 
 using namespace Algorithm::TrajectoryGeneration;
 using namespace Motor;
-
+using namespace Application;
 
 int main()
 {

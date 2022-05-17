@@ -192,7 +192,7 @@ namespace TrajectoryGeneration {
              */
             static void create(ITrajectoryInterpolation * & path_segment_ptr, 
                 InterpolationType path_type, unsigned int delta_pos, double delta_time);
-    }
+    };
 
 } // namespace TrajectoryGeneration
 } // namespace Algorithm

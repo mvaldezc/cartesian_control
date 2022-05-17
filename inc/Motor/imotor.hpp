@@ -38,15 +38,13 @@ namespace Motor {
             virtual void disableMotor() = 0;
             virtual void setDirection(MotorDirection direction) = 0;
             virtual void setHome() = 0;
+            virtual int_fast32_t getAbsPosition() = 0;
 
             bool isEnabled()
             {
                 return enabledFlag;
             }
-            char* getId()
-            {
-                return motorId;
-            }
+
             MotorType getType()
             {
                 return motorType;

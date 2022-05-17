@@ -78,6 +78,11 @@ namespace Motor {
              */
             void setHome() override;
 
+            /**
+             * @brief Get absolute position in steps, from home.
+             */
+            int_fast32_t getAbsPosition() override;
+
         private:
 
             /** 
