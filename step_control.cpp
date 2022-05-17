@@ -15,7 +15,6 @@
 
 using namespace Algorithm::TrajectoryGeneration;
 using namespace Motor;
-using namespace Application;
 
 int main()
 {
@@ -32,11 +31,11 @@ int main()
     gpio_pull_up(PICO_DEFAULT_I2C_SDA_PIN);
     gpio_pull_up(PICO_DEFAULT_I2C_SCL_PIN);
     i2c_set_slave_mode(i2c0, true, i2c_slave_addr);
-    uint8_t i2c_buffer[0] = {0};
+    uint8_t i2c_buffer = 0;
     while(true){
-        i2c_read_raw_blocking(i2c0, i2c_buffer, 1);
+        i2c_read_raw_blocking(i2c0, &i2c_buffer, 1);
         i2c_buffer++;
-        i2c_write_raw_blocking(i2c0, i2c_buffer, 1);
+        i2c_write_raw_blocking(i2c0, &i2c_buffer, 1);
     }
 
     /*

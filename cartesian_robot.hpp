@@ -78,6 +78,11 @@ class CartesianRobotClient
          */
         void execute_routine(size_t list_size, path_params_t * path_list_ptr);
 
+        /**
+         * @brief Check if motors are ready to move and move them.
+         */
+        void move_motors();
+
         AxisSettings_t x_axis;
         AxisSettings_t y_axis;
         AxisSettings_t z_axis;
@@ -105,11 +110,6 @@ class CartesianRobotClient
          * @brief Clean next path segment pointer.
          */
         void clean_trajectory_buffer();
-
-        /**
-         * @brief Check if motors are ready to move and move them.
-         */
-        void move_motors();
 
         /**
          * @brief Avoid motor for passing an stablished absolute limit range.
