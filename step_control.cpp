@@ -7,9 +7,10 @@
 #include "isr_sampling.hpp"
 #include "trajectory_gen.hpp"
 #include "cartesian_robot.hpp"
+#include "hardware/timer.h"
 
-#define i2c_baud_rate 115200
-#define i2c_slave_addr 0x02
+#define i2c_baud_rate 100000U
+#define i2c_slave_addr 0x55U
 
 //================ Global variables definition ================
 
@@ -19,7 +20,7 @@ using namespace Motor;
 int main()
 {
     stdio_init_all();
-    printf("Uart init completed");
+    printf("Uart init completed\n");
 
     #if !defined(i2c_default) || !defined(PICO_DEFAULT_I2C_SDA_PIN) || !defined(PICO_DEFAULT_I2C_SCL_PIN)
     #error i2c software component requires a board with I2C pins
@@ -34,8 +35,11 @@ int main()
     uint8_t i2c_buffer = 0;
     while(true){
         i2c_read_raw_blocking(i2c0, &i2c_buffer, 1);
-        i2c_buffer++;
+        printf("%d", i2c_buffer);
+        busy_wait_ms(40);
+        I2C_IC_INTR_STAT_R_RD_REQ_BITS
         i2c_write_raw_blocking(i2c0, &i2c_buffer, 1);
+        printf(" : data sent\n");
     }
 
     /*
