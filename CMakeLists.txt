@@ -24,6 +24,7 @@ add_executable(step_control
         src/Motor/stepper.cpp 
         src/Algorithm/TrajectoryInterpolation/trajectory_gen.cpp
         state_manager.hpp
+        i2c_slave.hpp
 )
 
 pico_set_program_name(step_control "step_control")

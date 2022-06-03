@@ -7,10 +7,8 @@
 #include "isr_sampling.hpp"
 #include "trajectory_gen.hpp"
 #include "cartesian_robot.hpp"
+#include "i2c_slave.hpp"
 #include "hardware/timer.h"
-
-#define i2c_baud_rate 100000U
-#define i2c_slave_addr 0x55U
 
 //================ Global variables definition ================
 
@@ -22,24 +20,11 @@ int main()
     stdio_init_all();
     printf("Uart init completed\n");
 
-    #if !defined(i2c_default) || !defined(PICO_DEFAULT_I2C_SDA_PIN) || !defined(PICO_DEFAULT_I2C_SCL_PIN)
-    #error i2c software component requires a board with I2C pins
-    #endif
-    // Use I2C0 on the default SDA and SCL pins (GP4, GP5 on a Pico)
-    i2c_init(i2c_default, i2c_baud_rate);
-    gpio_set_function(PICO_DEFAULT_I2C_SDA_PIN, GPIO_FUNC_I2C);
-    gpio_set_function(PICO_DEFAULT_I2C_SCL_PIN, GPIO_FUNC_I2C);
-    gpio_pull_up(PICO_DEFAULT_I2C_SDA_PIN);
-    gpio_pull_up(PICO_DEFAULT_I2C_SCL_PIN);
-    i2c_set_slave_mode(i2c0, true, i2c_slave_addr);
-    uint8_t i2c_buffer = 0;
-    while(true){
-        i2c_read_raw_blocking(i2c0, &i2c_buffer, 1);
-        printf("%d", i2c_buffer);
+    I2CSlave i2c_esclavo;
+    i2c_esclavo.init();
+
+    while(true){   
         busy_wait_ms(40);
-        I2C_IC_INTR_STAT_R_RD_REQ_BITS
-        i2c_write_raw_blocking(i2c0, &i2c_buffer, 1);
-        printf(" : data sent\n");
     }
 
     /*

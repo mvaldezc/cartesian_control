@@ -17,8 +17,8 @@ constexpr RxMessageId EMERGENCY_STOP = 0x05;
 typedef struct 
 {
     uint8_t length;
-    Callback rxCallback;
-} RxMessageData;
+    Callback rxMsgCallback;
+} RxMessageDataTemplate;
 
 void changeToJogCallback(void)
 {
@@ -50,7 +50,7 @@ void emergencyStopCallback(void)
     machineData.state.emergencyStop = true;
 }
 
-std::unordered_map<RxMessageId, RxMessageData> operationMap =
+std::unordered_map<RxMessageId, RxMessageDataTemplate> operationTable =
 {
     {CHANGE_TO_JOG, {1, &changeToJogCallback}},
     {CHANGE_TO_PROGRAM, {1, &changeToProgramCallback}},
@@ -60,15 +60,19 @@ std::unordered_map<RxMessageId, RxMessageData> operationMap =
     {EMERGENCY_STOP, {1, &emergencyStopCallback}}
 };
 
-void rxCallback(RxMessageId msgId, uint8_t * msgData, uint8_t dataLength)
+void rxCallback(RxMessageId msgId, uint8_t dataLength, uint8_t * msgData)
 {
-    if(operationMap.count(msgId) == 1)
+    // If message ID exist in message map
+    if(operationTable.count(msgId) == 1)
     {
-        if(dataLength == operationMap.at(msgId).length)
+        // If message length corresponds to operationTable length
+        if(dataLength == operationTable.at(msgId).length)
         {
-            if(operationMap.at(msgId).rxCallback != NULL)
+            // If message handler exists
+            if(operationTable.at(msgId).rxMsgCallback != NULL)
             {
-                operationMap.at(msgId).rxCallback();
+                // Call message handler
+                operationTable.at(msgId).rxMsgCallback();
                 machineData.state.actionNotRequired = false;
             }
         }
