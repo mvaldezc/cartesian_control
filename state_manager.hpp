@@ -37,9 +37,9 @@ typedef union
 {
     struct
     {
-        volatile bool actionNotRequired;
-        volatile bool emergencyStop;
         volatile MachineState mode;
+        volatile bool emergencyStop;
+        volatile bool actionNotRequired;
     } state;
     volatile uint32_t key;
 } MachineData;
@@ -48,9 +48,9 @@ MachineData machineData =
 {
     .state =
     {
-        .actionNotRequired = true,
-        .emergencyStop = false,
         .mode = MachineState::Off,
+        .emergencyStop = false,
+        .actionNotRequired = true,
     }
 };
 
@@ -73,6 +73,7 @@ static void machineProcess()
         case (EMERGENCY_ENABLED | static_cast<uint32_t>(MachineState::ExecuteProgram)):
         case (EMERGENCY_ENABLED | static_cast<uint32_t>(MachineState::Jog)):
             machineData.state.mode = MachineState::EmergencyStop;
+            printf("EMERGENCY STOP\n");
             break;
         
         case (static_cast<uint32_t>(MachineState::Off)):
@@ -80,9 +81,11 @@ static void machineProcess()
             {
                 case Action::Jog :
                     machineData.state.mode = MachineState::Jog;
+                    printf("Off -> Jog\n");
                     break;
                 case Action::Program :
                     machineData.state.mode = MachineState::PrepareMove;
+                    printf("Off -> Program\n");
                     break;
                 default:
                     break;
@@ -94,6 +97,7 @@ static void machineProcess()
             {
                 case Action::Cancel:
                     machineData.state.mode = MachineState::Off;
+                    printf("Jog -> Off\n");
                     break;
                 default:
                     break;
@@ -104,9 +108,14 @@ static void machineProcess()
             switch (instructionBuffer)
             {
                 case Action::Data:
+                    printf("Program: Data\n");
                     break;
                 case Action::Done:
                     machineData.state.mode = MachineState::WaitStart;
+                    break;
+                case Action::Cancel:
+                    machineData.state.mode = MachineState::Off;
+                    printf("Program -> Off\n");
                     break;
                 default:
                     break;
@@ -118,9 +127,11 @@ static void machineProcess()
             {
                 case Action::Cancel:
                     machineData.state.mode = MachineState::Off;
+                    printf("Waitstart -> Off\n");
                     break;
                 case Action::Start:
                     machineData.state.mode = MachineState::ExecuteProgram;
+                    printf("Waitstart -> Start\n");
                     break;
                 default:
                     break;
@@ -146,6 +157,7 @@ static void machineProcess()
                 case Action::Done:
                     machineData.state.mode = MachineState::Off;
                     machineData.state.emergencyStop = false;
+                    printf("Emer -> Off\n");
                     break;
                 default:
                     break;

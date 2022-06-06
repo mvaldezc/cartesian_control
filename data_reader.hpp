@@ -1,11 +1,12 @@
 #pragma once
 #include <cstdint>
 #include <unordered_map>
+#include "message_format.hpp"
 #include "state_manager.hpp"
 
-typedef void (*Callback)(void);
+using namespace Communication;
 
-typedef uint8_t RxMessageId;
+typedef void (*Callback)(void);
 
 constexpr RxMessageId CHANGE_TO_JOG = 0x00;
 constexpr RxMessageId CHANGE_TO_PROGRAM = 0x01;
@@ -52,15 +53,15 @@ void emergencyStopCallback(void)
 
 std::unordered_map<RxMessageId, RxMessageDataTemplate> operationTable =
 {
-    {CHANGE_TO_JOG, {1, &changeToJogCallback}},
-    {CHANGE_TO_PROGRAM, {1, &changeToProgramCallback}},
-    {TRAJECTORY_DATA, {17, &receiveTrajectoryDataCallback}},
-    {CANCEL_OPERATION, {1, &cancelOperationCallback}},
-    {START_OPERATION, {1, &startOperationCallback}},
-    {EMERGENCY_STOP, {1, &emergencyStopCallback}}
+    {CHANGE_TO_JOG, {0, &changeToJogCallback}},
+    {CHANGE_TO_PROGRAM, {0, &changeToProgramCallback}},
+    {TRAJECTORY_DATA, {4, &receiveTrajectoryDataCallback}},
+    {CANCEL_OPERATION, {0, &cancelOperationCallback}},
+    {START_OPERATION, {0, &startOperationCallback}},
+    {EMERGENCY_STOP, {0, &emergencyStopCallback}}
 };
 
-void rxCallback(RxMessageId msgId, uint8_t dataLength, uint8_t * msgData)
+void rxCallback(RxMessageId msgId, uint8_t dataLength, volatile uint8_t * msgData)
 {
     // If message ID exist in message map
     if(operationTable.count(msgId) == 1)
@@ -69,12 +70,18 @@ void rxCallback(RxMessageId msgId, uint8_t dataLength, uint8_t * msgData)
         if(dataLength == operationTable.at(msgId).length)
         {
             // If message handler exists
-            if(operationTable.at(msgId).rxMsgCallback != NULL)
+            if(operationTable.at(msgId).rxMsgCallback != nullptr)
             {
                 // Call message handler
                 operationTable.at(msgId).rxMsgCallback();
                 machineData.state.actionNotRequired = false;
+                machineProcess();
             }
         }
     }
+}
+
+void txCallback(uint8_t * msgData)
+{
+    *msgData = 0x07;
 }

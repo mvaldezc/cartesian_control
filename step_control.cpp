@@ -1,4 +1,4 @@
-#include <stdio.h>
+#include <cstdio>
 #include <string.h> 
 #include <memory>
 #include "pico/stdlib.h"
@@ -8,20 +8,22 @@
 #include "trajectory_gen.hpp"
 #include "cartesian_robot.hpp"
 #include "i2c_slave.hpp"
+#include "data_reader.hpp"
 #include "hardware/timer.h"
 
 //================ Global variables definition ================
 
 using namespace Algorithm::TrajectoryGeneration;
 using namespace Motor;
+using namespace Communication;
 
 int main()
 {
     stdio_init_all();
     printf("Uart init completed\n");
 
-    I2CSlave i2c_esclavo;
-    i2c_esclavo.init();
+    I2CSlave::init(&rxCallback, &txCallback);
+    printf("I2C init completed\n");
 
     while(true){   
         busy_wait_ms(40);
