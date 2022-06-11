@@ -1,3 +1,10 @@
+/***********************************************************************
+ * @file	:	message_format.hpp
+ * @brief 	:	Template of messages frames
+ * @author	:	Marco Valdez @marcovc41
+ *
+ ***********************************************************************/
+
 #pragma once
 #include <cstdint>
 

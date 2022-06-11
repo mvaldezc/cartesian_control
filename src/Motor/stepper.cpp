@@ -54,18 +54,18 @@ namespace Motor {
     }
 
     void Stepper::enableMotor(){
-        #ifdef RASP_PICO
         // Set enabled flag in motor config register
         enabledFlag = true;
+        #ifdef RASP_PICO
         // Atomic bit set of enable pin, send enable signal to motor
         gpio_put(pinEn, 0);
         #endif
     }
 
     void Stepper::disableMotor(){
-        #ifdef RASP_PICO
         // Clear enabled flag in motor config register
         enabledFlag = false;
+        #ifdef RASP_PICO
         // Atomic bit clear of enable pin, send disable signal to motor
         gpio_put(pinEn, 1);
         #endif

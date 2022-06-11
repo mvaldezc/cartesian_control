@@ -9,8 +9,8 @@
 #pragma once
 #include <cstdint>
 #include "imotor.hpp"
+#include "board.hpp"
 
-#define RASP_PICO
 #ifdef RASP_PICO
 #include "pico/mutex.h"
 #include "hardware/gpio.h"

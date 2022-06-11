@@ -8,8 +8,8 @@
 
 #pragma once
 #include <cstdio>
+#include "board.hpp"
 
-#define RASP_PICO
 #ifdef RASP_PICO
 #include "hardware/timer.h"
 #endif

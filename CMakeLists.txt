@@ -39,6 +39,7 @@ target_include_directories(step_control
         ${CMAKE_CURRENT_SOURCE_DIR}/inc/Motor
         ${CMAKE_CURRENT_SOURCE_DIR}/inc/Sampler
         ${CMAKE_CURRENT_SOURCE_DIR}/inc/Communication
+        ${CMAKE_CURRENT_SOURCE_DIR}/
 )
 
 # Add any user requested libraries
