@@ -16,11 +16,14 @@
 using namespace Algorithm::TrajectoryGeneration;
 using namespace Motor;
 using namespace Communication;
+using namespace System::Robot;
 
 int main()
 {
     stdio_init_all();
     printf("Uart init completed\n");
+
+    StateManager stateManager;
 
     I2CSlave::init(&rxCallback, &txCallback);
     printf("I2C init completed\n");

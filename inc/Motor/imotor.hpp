@@ -2,7 +2,7 @@
  * @file	:	imotor.hpp
  * @brief 	:	Motor Interface
  * 				Definition of a motor interface to be independent of
- *              motor type
+ *              motor type.
  * @author	:	Marco Valdez @marcovc41
  *
  ***********************************************************************/

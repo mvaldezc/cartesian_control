@@ -1,7 +1,7 @@
 /***********************************************************************
  * @file	:	trajectory_gen.hpp
  * @brief 	:	Trajectory Generation Library
- * 				Library to generate joint space trajectory interpolations
+ * 				Library to generate joint space trajectory interpolations.
  * @author	:	Marco Valdez @marcovc41
  *
  ***********************************************************************/
@@ -28,7 +28,7 @@
 //   Px = α * θx
 //   Py = β * θy
 // Since it is linear -> interpolation in task space is equivalent to joint space
-//   θx[w[t]] = Px/α = (θxf - θxo) * w + θxo LinearPoly
+//   θx[w[t]] = Px/α = (θxf - θxo) * w + θxo 
 //   θy[w[t]] = Py/β = (θyf - θyo) * w + θyo
 
 namespace Algorithm {
@@ -192,6 +192,8 @@ namespace TrajectoryGeneration {
              */
             static void create(ITrajectoryInterpolation * & path_segment_ptr, 
                 InterpolationType path_type, unsigned int delta_pos, double delta_time);
+        private:
+            InterpolationFactory(){};
     };
 
 } // namespace TrajectoryGeneration

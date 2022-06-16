@@ -1,7 +1,7 @@
 /***********************************************************************
  * @file	:	isr_sampling.hpp
  * @brief 	:	Interrupt Service Routine Sampling Library
- * 				Library to sample inside an interruption
+ * 				Library to sample using a timer interruption.
  * @author	:	Marco Valdez @marcovc41
  *
  ***********************************************************************/
@@ -51,7 +51,7 @@ namespace Sampler {
              * @param[in] irq_handler Function to call on each timer interruption.
              * @param[in] user_data Pointer to data to pass to the irq_handler.
              */
-            void init(repeating_timer_callback_t irq_handler, void * user_data)
+            inline void init(repeating_timer_callback_t irq_handler, void * user_data)
             {
                 #ifdef RASP_PICO
                 add_repeating_timer_us(-samplingPeriod, irq_handler, user_data, &sampling_timer);
@@ -61,7 +61,7 @@ namespace Sampler {
             /**
              * @brief Cancel repeating timer and timer interruption.
              */
-            void cancel(){
+            inline void cancel(){
                 #ifdef RASP_PICO
                 cancel_repeating_timer(&sampling_timer);
                 #endif

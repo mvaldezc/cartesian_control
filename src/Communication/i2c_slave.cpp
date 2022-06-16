@@ -5,4 +5,4 @@ namespace Communication {
     volatile TxHandler I2CSlave::txHandler = nullptr;
     volatile uint8_t I2CSlave::rxBuffer[BUFFER_SIZE] = {0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
     volatile uint8_t I2CSlave::receivedDataLength = 0;
-}
+} // namespace Communication

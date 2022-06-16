@@ -1,11 +1,3 @@
-/***********************************************************************
- * @file	:	cartesian_robot.cpp
- * @brief 	:	3 DoF Cartesian Robot Library
- * 				Library to move a cartesian robot through via points
- * @author	:	Marco Valdez @marcovc41
- *
- ***********************************************************************/
-
 #include "cartesian_robot.hpp"
 
 void CartesianRobotClient::save_path_list(path_params_t *path_list_ptr)
@@ -135,5 +127,3 @@ bool CartesianRobotClient::openLoopLimitCheck(Imotor * & motor)
         return false;
     }
 }
-
-

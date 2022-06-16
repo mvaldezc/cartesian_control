@@ -1,12 +1,15 @@
 /***********************************************************************
  * @file	:	trajectory_data.hpp
- * @brief 	:	Trajectory Data Library
- * 				Library with message types used to transmit trajectory data
+ * @brief 	:	Trajectory Data Types
+ * 				Defines data types containing trajectory specifications.
  * @author	:	Marco Valdez @marcovc41
  *
  ***********************************************************************/
 
 #pragma once
+
+namespace Algorithm {
+namespace TrajectoryGeneration {
 
 // Machine step size: 0.025 mm (1/40 mm)
 
@@ -25,3 +28,6 @@ typedef struct // size: (4 words = 16 bytes = 128 bits)
     unsigned int vel_y_f : 16;  // (1/20) step/sec, max 3200 steps/sec
     unsigned int vel_z_f : 16;  // (1/20) step/sec, max 3200 steps/sec
 } path_params_t;
+
+} // namespace TrajectoryGeneration
+} // namespace Algorithm

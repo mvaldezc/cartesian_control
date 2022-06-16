@@ -41,7 +41,7 @@ namespace TrajectoryGeneration {
     {
         // Time scaling w[t] ∈ [0,1]
         //   w[t] = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5
-        a[5] = (double)6 / (d_time * d_time * d_time * d_time * d_time);
+        a[5] = (double) 6 / (d_time * d_time * d_time * d_time * d_time);
         a[4] = (double)-5 / 2 * a[5] * d_time;
         a[3] = (double)10 / (d_time * d_time * d_time);
     }
@@ -59,10 +59,10 @@ namespace TrajectoryGeneration {
         // Time scaling w[t] ∈ [0,1]
         //   w[t] = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5 + a6*t^6 + a7*t^7
 
-        a[4] = (double)35 / (d_time * d_time * d_time * d_time);
+        a[4] = (double) 35 / (d_time * d_time * d_time * d_time);
         a[5] = (double)-12 / 5 * a[4] / d_time;
-        a[6] = (double)-5 / 6 * a[5] / d_time;
-        a[7] = (double)-2 / 7 * a[6] / d_time;
+        a[6] = (double) -5 / 6 * a[5] / d_time;
+        a[7] = (double) -2 / 7 * a[6] / d_time;
     }
 
     double SepticInterpolation::interpolateMotion(double time)

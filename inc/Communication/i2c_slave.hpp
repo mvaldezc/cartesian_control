@@ -12,7 +12,6 @@
 #include <cstdint>
 #include <cstdio>
 #include "message_format.hpp"
-#include "board.hpp"
 
 #ifdef RASP_PICO
 
@@ -144,4 +143,5 @@ namespace Communication {
                 }
             }
     };
-}
+    
+} // namespace Communication

@@ -1,6 +1,7 @@
 /***********************************************************************
  * @file	:	message_format.hpp
- * @brief 	:	Template of messages frames
+ * @brief 	:	Message Format Interface
+ *              Signature of message frame handlers.
  * @author	:	Marco Valdez @marcovc41
  *
  ***********************************************************************/
@@ -13,5 +14,5 @@ namespace Communication {
 
     typedef void (*RxHandler)(RxMessageId msgId, uint8_t dataLength, volatile uint8_t * data);
     typedef void (*TxHandler)(uint8_t * data);
-}
 
+} // namespace Communication

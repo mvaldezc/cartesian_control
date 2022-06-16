@@ -21,10 +21,11 @@ pico_sdk_init()
 
 add_executable(step_control 
         step_control.cpp 
-        src/Motor/stepper.cpp 
-        src/Algorithm/TrajectoryInterpolation/trajectory_gen.cpp
-        src/Communication/i2c_slave.cpp
         state_manager.hpp
+        src/Motor/stepper.cpp 
+        src/Algorithm/TrajectoryGeneration/trajectory_gen.cpp
+        src/System/Robot/cartesian_robot.cpp
+        src/Communication/i2c_slave.cpp
 )
 
 pico_set_program_name(step_control "step_control")
@@ -35,12 +36,16 @@ pico_enable_stdio_uart(step_control 1)
 # Add include path
 target_include_directories(step_control 
         PRIVATE 
-        ${CMAKE_CURRENT_SOURCE_DIR}/inc/Algorithm/TrajectoryInterpolation
+        ${CMAKE_CURRENT_SOURCE_DIR}/inc/Algorithm/TrajectoryGeneration
         ${CMAKE_CURRENT_SOURCE_DIR}/inc/Motor
         ${CMAKE_CURRENT_SOURCE_DIR}/inc/Sampler
         ${CMAKE_CURRENT_SOURCE_DIR}/inc/Communication
+        ${CMAKE_CURRENT_SOURCE_DIR}/inc/System/Robot
         ${CMAKE_CURRENT_SOURCE_DIR}/
 )
+
+# Select platform (#define platform macro)
+target_compile_definitions(step_control PUBLIC RASP_PICO)
 
 # Add any user requested libraries
 target_link_libraries(step_control

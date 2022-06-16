@@ -1,7 +1,8 @@
 /***********************************************************************
  * @file	:	stepper.hpp
  * @brief 	:	Stepper Motor Library
- * 				Library to control a stepper motor
+ * 				Library to control a stepper motor following IMotor
+ *              interface.
  * @author	:	Marco Valdez @marcovc41
  *
  ***********************************************************************/
@@ -9,7 +10,6 @@
 #pragma once
 #include <cstdint>
 #include "imotor.hpp"
-#include "board.hpp"
 
 #ifdef RASP_PICO
 #include "pico/mutex.h"
