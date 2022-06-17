@@ -34,15 +34,28 @@
 
 #endif
 
-#define I2C_BAUD_RATE 400000U
-#define I2C_SLAVE_ADDRESS 0x55U
-#define BUFFER_SIZE 16U
+#define I2C_BAUD_RATE 400000U // I2C baud rate
+#define I2C_SLAVE_ADDRESS 0x55U // I2C device address
+#define BUFFER_SIZE 16U // Maximum message lenght in bytes
 
 namespace Communication {
+
+    /**
+     * @class I2CSlave
+     * @brief Static class that configures I2C hardware as a slave and 
+     * installs callbacks for read and write ISRs.
+     */
     class I2CSlave
     {
         public:
             
+            /**
+             * @brief Static method that initializes I2C hardware as slave.
+             * @param[in] rxHandlerPtr Pointer to function that will be called
+             *            once a message is received.
+             * @param[in] txHandlerPtr Pointer to function that will be called
+             *            once a message request is received.
+             */
             static void init(RxHandler rxHandlerPtr, TxHandler txHandlerPtr)
             {
                 rxHandler = rxHandlerPtr;
@@ -69,7 +82,7 @@ namespace Communication {
             }
 
         private:
-            I2CSlave(){}
+            I2CSlave(){} // Private constructor to avoid instance creation
             static volatile RxHandler rxHandler;
             static volatile TxHandler txHandler;
             static volatile uint8_t rxBuffer[BUFFER_SIZE];
@@ -92,7 +105,7 @@ namespace Communication {
 
             static void rx_irq()
             {
-                // Read the data from FIO I2C buffer (this will clear the interrupt)
+                // Read the data from FIFO I2C buffer (this will clear the interrupt)
                 uint32_t value = DATA_BUFFER;
                 bool isFirst = value & FIRST_DATA_BYTE;
                 uint8_t data = value & DAT;

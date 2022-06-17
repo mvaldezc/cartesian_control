@@ -8,7 +8,6 @@
 
 #pragma once
 #include <cstdio>
-#include "board.hpp"
 
 #ifdef RASP_PICO
 #include "hardware/timer.h"
@@ -20,7 +19,7 @@ namespace Sampler {
      * @class TimerIsrSampler
      * @brief Implementation of a periodic sampler using a timer interruption.
      * It executes a specified function each sampling time.
-     * It ensures a timer delay < 5% otherwise returns an error and stops.
+     * It checks if timer delay < 5% otherwise returns an error and stops.
      * Sampling period range :  100 us  < T < 17 min
      */
     class TimerIsrSampler

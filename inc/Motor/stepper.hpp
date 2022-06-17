@@ -1,8 +1,8 @@
 /***********************************************************************
  * @file	:	stepper.hpp
  * @brief 	:	Stepper Motor Library
- * 				Library to control a stepper motor following IMotor
- *              interface.
+ * 				Library for Stepper Motor open-loop position control 
+ *              following IMotor interface.
  * @author	:	Marco Valdez @marcovc41
  *
  ***********************************************************************/
@@ -21,7 +21,7 @@ namespace Motor {
     
     /**
      * @class Stepper
-     * @brief Implementation of stepper motor driver.
+     * @brief Stepper motor driver. Open-loop stepper motor position control.
      */
     class Stepper : public IMotor
     {

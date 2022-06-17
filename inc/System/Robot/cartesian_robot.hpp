@@ -49,6 +49,14 @@ namespace Robot {
 
     bool move_motor_callback(struct repeating_timer *t);
 
+    /**
+     * @class CartesianRobotClient
+     * @brief Manages the resources required for a classic cartesian robot.
+     * @details
+     * -Hardware: It allows controlling up to 3 motors and 1 timer.
+     * -Algorithms: It allows interpolation algorithms for trajectory generation.
+     * -Data: It stores data structure with via points.
+     */
     class CartesianRobotClient
     {
         public:

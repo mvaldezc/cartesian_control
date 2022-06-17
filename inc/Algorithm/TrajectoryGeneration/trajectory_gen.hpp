@@ -9,7 +9,7 @@
 #pragma once
 
 // This library assumes joint interpolation is the same as task interpolation for cartesian robots.
-// Proof:
+// Example:
 //
 // Time scaling w[t] ∈ [0,1]
 //   w[t] = a0 + a1*t + a2*t^2 + a3*t^3
@@ -45,6 +45,7 @@ namespace TrajectoryGeneration {
     };
 
     /**
+     * @interface ITrajectoryInterpolation
      * @brief Interface for motion description of a path segment.
      */
     class ITrajectoryInterpolation {
@@ -83,7 +84,8 @@ namespace TrajectoryGeneration {
 
     /**
      * @brief Define a path segment with motion described by cubic polynomial.
-     * It allows to specify position and velocity constraints at boundary values of the segment.
+     * It allows to specify position constraints at boundary values of the segment.
+     * Point-to-Point behavior so velocity at boundary values is set to zero.
      */
     class CubicInterpolation : public ITrajectoryInterpolation {
         public:
@@ -103,7 +105,9 @@ namespace TrajectoryGeneration {
 
     /**
      * @brief Define a path segment with motion described by quintic polynomial.
-     * It allows to specify position, velocity, and acceleration at boundary values of the segment.
+     * It allows to specify position at boundary values of the segment.
+     * Point-to-Point behavior so velocity and acceleration at boundary values
+     * are set to zero.
      */
     class QuinticInterpolation : public ITrajectoryInterpolation {
         public:
@@ -124,7 +128,9 @@ namespace TrajectoryGeneration {
 
     /**
      * @brief Define a path segment with motion described by septic polynomial.
-     * It allows to specify position, velocity, acceleration and jerk at boundary values of the segment.
+     * It allows to specify position at boundary values of the segment.
+     * Point-to-Point behavior so velocity, acceleration and jerk at boundary values
+     * are set to zero.
      */
     class SepticInterpolation : public ITrajectoryInterpolation {
         public:

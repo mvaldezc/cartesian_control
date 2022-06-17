@@ -26,6 +26,7 @@ add_executable(step_control
         src/Algorithm/TrajectoryGeneration/trajectory_gen.cpp
         src/System/Robot/cartesian_robot.cpp
         src/Communication/i2c_slave.cpp
+        src/Machine/state_manager.cpp
 )
 
 pico_set_program_name(step_control "step_control")
@@ -41,6 +42,8 @@ target_include_directories(step_control
         ${CMAKE_CURRENT_SOURCE_DIR}/inc/Sampler
         ${CMAKE_CURRENT_SOURCE_DIR}/inc/Communication
         ${CMAKE_CURRENT_SOURCE_DIR}/inc/System/Robot
+        ${CMAKE_CURRENT_SOURCE_DIR}/inc/Machine
+        ${CMAKE_CURRENT_SOURCE_DIR}/inc/Mutex
         ${CMAKE_CURRENT_SOURCE_DIR}/
 )
 
