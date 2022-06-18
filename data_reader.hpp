@@ -28,41 +28,43 @@ namespace Communication {
         Callback rxMsgCallback;
     } RxMessageDataTemplate;
 
+    static StateManager * stateManager = StateManager::getInstance();
+
     void changeToJogCallback(void)
     {
-        instructionBuffer = Action::Jog;
+        stateManager->setAction(Action::Jog);
     }
 
     void changeToProgramCallback(void)
     {
-        instructionBuffer = Action::Program;
+        stateManager->setAction(Action::Program);
     }
 
     void receiveTrajectoryDataCallback(void)
     {
-        instructionBuffer = Action::Data;
+        stateManager->setAction(Action::Data);
     }
 
     void cancelOperationCallback(void)
     {
-        instructionBuffer = Action::Cancel;
+        stateManager->setAction(Action::Cancel);
     }
 
     void startOperationCallback(void)
     {
-        instructionBuffer = Action::Start;
+        stateManager->setAction(Action::Start);
     }
 
     void emergencyStopCallback(void)
     {
-        machineData.state.emergencyStop = true;
+        stateManager->setEmergencyStop();
     }
 
     std::unordered_map<RxMessageId, RxMessageDataTemplate> operationTable =
     {
         {CHANGE_TO_JOG, {0, &changeToJogCallback}},
         {CHANGE_TO_PROGRAM, {0, &changeToProgramCallback}},
-        {TRAJECTORY_DATA, {4, &receiveTrajectoryDataCallback}},
+        {TRAJECTORY_DATA, {10, &receiveTrajectoryDataCallback}},
         {CANCEL_OPERATION, {0, &cancelOperationCallback}},
         {START_OPERATION, {0, &startOperationCallback}},
         {EMERGENCY_STOP, {0, &emergencyStopCallback}}
@@ -81,7 +83,6 @@ namespace Communication {
                 {
                     // Call message handler
                     operationTable.at(msgId).rxMsgCallback();
-                    machineData.state.actionNotRequired = false;
                     machineProcess();
                 }
             }

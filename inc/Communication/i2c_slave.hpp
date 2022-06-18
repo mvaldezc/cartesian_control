@@ -36,7 +36,7 @@
 
 #define I2C_BAUD_RATE 400000U // I2C baud rate
 #define I2C_SLAVE_ADDRESS 0x55U // I2C device address
-#define BUFFER_SIZE 16U // Maximum message lenght in bytes
+#define I2C_BUFFER_SIZE 12U // Maximum message lenght in bytes
 
 namespace Communication {
 
@@ -85,7 +85,7 @@ namespace Communication {
             I2CSlave(){} // Private constructor to avoid instance creation
             static volatile RxHandler rxHandler;
             static volatile TxHandler txHandler;
-            static volatile uint8_t rxBuffer[BUFFER_SIZE];
+            static volatile uint8_t rxBuffer[I2C_BUFFER_SIZE];
             static volatile uint8_t receivedDataLength;
             
             static void i2c0_irq_handler()
@@ -122,7 +122,7 @@ namespace Communication {
                     receivedDataLength++;
 
                     // If expected amount of data is received
-                    if(rxBuffer[1] + 2 == receivedDataLength)
+                    if(rxBuffer[1] + 2 == receivedDataLength || receivedDataLength == I2C_BUFFER_SIZE)
                     {
                         if(rxHandler != nullptr){
                             rxHandler(rxBuffer[0], rxBuffer[1], &rxBuffer[2]);
@@ -150,7 +150,7 @@ namespace Communication {
 
             static inline void cleanBuffer(volatile uint8_t * buffer)
             {
-                for(int i = 0; i < BUFFER_SIZE; i++)
+                for(int i = 0; i < I2C_BUFFER_SIZE; i++)
                 {
                     *(buffer+i) = 0;
                 }

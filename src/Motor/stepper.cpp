@@ -2,7 +2,7 @@
 
 namespace Motor {
 
-    bool Stepper::step(uint64_t pulse_width_us)
+    bool Stepper::step(uint32_t pulse_width_us)
     {
         // Return if motor is not enabled or emergency stop happened
         if (!enabledFlag){

@@ -2,14 +2,11 @@
 #include <string.h> 
 #include <memory>
 #include "pico/stdlib.h"
-#include "hardware/i2c.h"
 #include "stepper.hpp"
-#include "isr_sampling.hpp"
-#include "trajectory_gen.hpp"
 #include "cartesian_robot.hpp"
 #include "i2c_slave.hpp"
 #include "data_reader.hpp"
-#include "hardware/timer.h"
+#include "state_manager.hpp"
 
 //================ Global variables definition ================
 
@@ -23,7 +20,7 @@ int main()
     stdio_init_all();
     printf("Uart init completed\n");
 
-    StateManager stateManager;
+    StateManager * stateManager = StateManager::getInstance();
 
     I2CSlave::init(&rxCallback, &txCallback);
     printf("I2C init completed\n");

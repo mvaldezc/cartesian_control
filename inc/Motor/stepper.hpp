@@ -56,7 +56,7 @@ namespace Motor {
              * @param[in] pulse_width_us Period of the pulse. Time between rising and falling edge.
              * @return True if the step pulse was sent.
              */ 
-            bool step(uint64_t pulse_width_us);
+            bool step(uint32_t pulse_width_us);
 
             /**
              * @brief Enable motor output.

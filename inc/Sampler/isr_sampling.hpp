@@ -30,13 +30,14 @@ namespace Sampler {
         public:
             TimerIsrSampler(uint64_t sampling_period_us) : samplingPeriod(sampling_period_us) {}
 
-            #ifdef RASP_PICO
-            struct repeating_timer sampling_timer;
-            #endif
-
             volatile bool errorFlag = false; // flag for timer error
 
         private:
+
+            #ifdef RASP_PICO
+            struct repeating_timer sampling_timer;
+            #endif
+            
             const uint64_t samplingPeriod;
             volatile uint64_t currentTime_us = 0;  // current timestamp in microseconds
             volatile uint64_t previousTime_us = 0; // previous timestamp in microseconds

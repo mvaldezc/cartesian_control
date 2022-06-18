@@ -10,6 +10,9 @@
 /*                                      Public Access Members                                     */
 /* ---------------------------------------------------------------------------------------------- */
 
+#define EMERGENCY_ENABLED (uint32_t)(1 << 8)
+#define ACTION_NOT_NEEDED (uint32_t)(1 << 16)
+
 enum class Action : uint8_t
 {
     Cancel = 0x00,
@@ -57,6 +60,7 @@ typedef union
 class StateManager
 {   
     protected:
+
         StateManager()
         {
             critical_section_init(*machineDataLock)
@@ -78,7 +82,6 @@ class StateManager
         static StateManager* stateManagerInstance;
         // equivalent to static mutex declaration + mutex_init()
         auto_init_mutex(createStateManagerMutex);
-        
 
     public:
         static StateManager * getInstance();
@@ -88,9 +91,6 @@ class StateManager
 
         // Singleton shouldn't be assignable.
         StateManager & operator=(const StateManager & obj) = delete;
-
-        #define EMERGENCY_ENABLED (uint32_t)(1 << 8)
-        #define ACTION_NOT_NEEDED (uint32_t)(1 << 16)
 
         void machineProcess();
 
