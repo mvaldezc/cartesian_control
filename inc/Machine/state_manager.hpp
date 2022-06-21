@@ -3,7 +3,7 @@
 #include <string>
 #include <cstdint>
 #include "pico/critical_section.h"
-#include "pico/mutex"
+#include "pico/mutex.h"
 #include "lock_guard.hpp"
 
 /* ---------------------------------------------------------------------------------------------- */
@@ -41,10 +41,13 @@ typedef union
     {
         volatile MachineState mode;
         volatile bool emergencyStop;
-        volatile bool actionNotRequired;
+        volatile bool actionRequired;
     } state;
     volatile uint32_t key;
 } MachineData;
+
+// equivalent to static mutex declaration + mutex_init()
+auto_init_mutex(createStateManagerMutex);
 
 /**
  * @class StateManager
@@ -63,7 +66,7 @@ class StateManager
 
         StateManager()
         {
-            critical_section_init(*machineDataLock)
+            critical_section_init(&stateManagerLock);
         }
 
         Action instructionBuffer = Action::None;
@@ -76,15 +79,27 @@ class StateManager
                 .actionRequired = false,
             }
         };
-        critical_section_t stateDataLock;
+        critical_section_t stateManagerLock;
 
     private: 
-        static StateManager* stateManagerInstance;
-        // equivalent to static mutex declaration + mutex_init()
-        auto_init_mutex(createStateManagerMutex);
+        static StateManager * instance;
 
     public:
-        static StateManager * getInstance();
+        static StateManager * getInstance()
+        {
+            // Acquire mutex to avoid creation of multiple instances of class 
+            // by concurrent calls of this method.
+            lock_guard<mutex_t> mutexWrapper(createStateManagerMutex);
+
+            // If unique StateManager instance doesn't exist, create it.
+            if(instance == nullptr)
+            {
+                instance = new StateManager;
+            }
+
+            // Return singleton.
+            return instance;
+        }
 
         // Singleton shouldn't be cloneable.
         StateManager(const StateManager & obj) = delete;

@@ -15,6 +15,8 @@
 
 namespace Sampler {
 
+    typedef bool (*isrTimerCallback_t)(void * user_data);
+
     /**
      * @class TimerIsrSampler
      * @brief Implementation of a periodic sampler using a timer interruption.
@@ -28,7 +30,7 @@ namespace Sampler {
         static constexpr unsigned int MAX_BLOCKING_CYCLES = 10;
 
         public:
-            TimerIsrSampler(uint64_t sampling_period_us) : samplingPeriod(sampling_period_us) {}
+            explicit TimerIsrSampler(uint64_t sampling_period_us) : samplingPeriod(sampling_period_us) {}
 
             volatile bool errorFlag = false; // flag for timer error
 
@@ -47,14 +49,38 @@ namespace Sampler {
         public:
 
             /**
-             * @brief Initilize repeating timer and timer interruption.
+             * @brief Initialize repeating timer and timer interruption.
              * @param[in] irq_handler Function to call on each timer interruption.
              * @param[in] user_data Pointer to data to pass to the irq_handler.
              */
-            inline void init(repeating_timer_callback_t irq_handler, void * user_data)
+            inline void init(isrTimerCallback_t irq_handler, void * user_data)
             {
                 #ifdef RASP_PICO
-                add_repeating_timer_us(-samplingPeriod, irq_handler, user_data, &sampling_timer);
+                typedef struct {
+                    TimerIsrSampler * timerIsrSamplerInstance;
+                    void * user_data;
+                    isrTimerCallback_t irq_handler;
+                }TimerData_t;
+
+                TimerData_t timer_data = {
+                    .timerIsrSamplerInstance =  this,
+                    .user_data = user_data,
+                    .irq_handler = irq_handler
+                };
+
+                repeating_timer_callback_t callback = [](repeating_timer_t * rt)
+                {
+                    TimerData_t * timer_data = static_cast<TimerData_t *>(rt->user_data);
+                    // If something is wrong with the timer, return false
+                    if (!timer_data->timerIsrSamplerInstance->isrTimeCheck())
+                    {
+                        return false;
+                    }
+                    bool return_val = timer_data->irq_handler(timer_data->user_data);
+                    return return_val;
+                };
+
+                add_repeating_timer_us(-samplingPeriod, callback, &timer_data, &sampling_timer);
                 #endif
             }
 
@@ -83,7 +109,7 @@ namespace Sampler {
                 deltaTime_us = currentTime_us - previousTime_us;
                 previousTime_us = currentTime_us;
 
-                // Check if timer is going to slow, then return an error
+                // Check if timer is going too slow, then return an error
                 if (deltaTime_us > samplingPeriod * ERROR_THRESHOLD_FACTOR)
                 {
                     isrBlockingCnt++;

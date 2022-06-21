@@ -21,13 +21,12 @@ pico_sdk_init()
 
 add_executable(step_control 
         step_control.cpp 
-        state_manager.hpp
         src/Motor/stepper.cpp 
         src/Algorithm/TrajectoryGeneration/trajectory_gen.cpp
         src/System/Robot/cartesian_robot.cpp
         src/Communication/i2c_slave.cpp
         src/Machine/state_manager.cpp
-)
+        data_reader.cpp)
 
 pico_set_program_name(step_control "step_control")
 pico_set_program_version(step_control "0.1")

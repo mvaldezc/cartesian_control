@@ -14,9 +14,9 @@ namespace Motor {
         if (mutex_try_enter(&mutex, mutex_owner)){
             //  Execute step
             #ifdef RASP_PICO
-            gpio_put(pinStep, 1);
+            gpio_put(pinStep, true);
             busy_wait_us(pulse_width_us);
-            gpio_put(pinStep, 0);
+            gpio_put(pinStep, false);
             #endif
 
             // Update step counters
@@ -50,7 +50,7 @@ namespace Motor {
         enabledFlag = true;
         #ifdef RASP_PICO
         // Atomic bit set of enable pin, send enable signal to motor
-        gpio_put(pinEn, 0);
+        gpio_put(pinEn, false);
         #endif
     }
 
@@ -59,18 +59,18 @@ namespace Motor {
         enabledFlag = false;
         #ifdef RASP_PICO
         // Atomic bit clear of enable pin, send disable signal to motor
-        gpio_put(pinEn, 1);
+        gpio_put(pinEn, true);
         #endif
     }
 
-    void Stepper::initPins(){
+    void Stepper::initPins() const{
         #ifdef RASP_PICO
         gpio_init(pinEn);
         gpio_init(pinDir);
         gpio_init(pinStep);
-        gpio_put(pinEn, 1); // Initial En disabled
-        gpio_put(pinDir, 0); // Initial Dir CounterClockwise
-        gpio_put(pinStep, 0);
+        gpio_put(pinEn, true); // Initial En disabled
+        gpio_put(pinDir, false); // Initial Dir CounterClockwise
+        gpio_put(pinStep, false);
         gpio_set_dir(pinEn, GPIO_OUT);
         gpio_set_dir(pinDir, GPIO_OUT);
         gpio_set_dir(pinStep, GPIO_OUT);

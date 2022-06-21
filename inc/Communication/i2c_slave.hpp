@@ -36,7 +36,7 @@
 
 #define I2C_BAUD_RATE 400000U // I2C baud rate
 #define I2C_SLAVE_ADDRESS 0x55U // I2C device address
-#define I2C_BUFFER_SIZE 12U // Maximum message lenght in bytes
+#define I2C_BUFFER_SIZE 12U // Maximum message length in bytes
 
 namespace Communication {
 
@@ -82,7 +82,7 @@ namespace Communication {
             }
 
         private:
-            I2CSlave(){} // Private constructor to avoid instance creation
+            I2CSlave()= default; // Private constructor to avoid instance creation
             static volatile RxHandler rxHandler;
             static volatile TxHandler txHandler;
             static volatile uint8_t rxBuffer[I2C_BUFFER_SIZE];

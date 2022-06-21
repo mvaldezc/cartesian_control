@@ -9,6 +9,7 @@
 #pragma once
 
 #include <memory>
+#include <utility>
 #include "trajectory_gen.hpp"
 #include "trajectory_data.hpp"
 #include "stepper.hpp"
@@ -18,8 +19,7 @@ using namespace Algorithm::TrajectoryGeneration;
 using namespace Motor;
 using namespace Sampler;
 
-namespace System {
-namespace Robot {
+namespace System::Robot {
 
     typedef struct
     {
@@ -37,17 +37,7 @@ namespace Robot {
     constexpr float um_to_cm_factor = (float) 1/10000;
 
     //================ Global variables definition ================
-    TimerIsrSampler motor_sampler(sampling_period_us);
-
-    volatile double w = 0;
-    volatile int k = 0;
-    volatile double cnt;
-    volatile bool finished = false;
-    volatile int pos_x = 0, pos_anterior_x = 0;
-    volatile int pos_y = 0, pos_anterior_y = 0;
-    volatile int pos_z = 0, pos_anterior_z = 0;
-
-    bool move_motor_callback(struct repeating_timer *t);
+    static TimerIsrSampler motor_sampler(sampling_period_us);
 
     /**
      * @class CartesianRobotClient
@@ -62,7 +52,16 @@ namespace Robot {
         public:
             CartesianRobotClient(std::shared_ptr<IMotor> motor_x, std::shared_ptr<IMotor> motor_y, 
                 std::shared_ptr<IMotor> motor_z)
-                : motor_x(motor_x), motor_y(motor_y), motor_z(motor_z) {}
+                : motor_x(std::move(motor_x)), motor_y(std::move(motor_y)), motor_z(std::move(motor_z))
+            {
+                // TODO check what happens if motors are nullptr
+                move_motor_timer_callback =
+                    [](void * t)
+                    {
+                        static_cast<CartesianRobotClient * >(t)->move_motors();
+                        return true;
+                    };
+            }
 
             ITrajectoryInterpolation * path_segment_buffer[3] = {nullptr, nullptr, nullptr};
             path_params_t * path_list;
@@ -100,6 +99,16 @@ namespace Robot {
 
         private:
 
+            volatile double w = 0;
+            volatile int k = 0;
+            volatile double cnt;
+            volatile bool finished = false;
+            volatile int pos_x = 0, pos_anterior_x = 0;
+            volatile int pos_y = 0, pos_anterior_y = 0;
+            volatile int pos_z = 0, pos_anterior_z = 0;
+
+            isrTimerCallback_t move_motor_timer_callback = nullptr;
+
             /**
              * @brief Save list of path segments.
              */
@@ -111,11 +120,9 @@ namespace Robot {
             void set_trajectory_buffer();
 
             /**
-             * @brief Set rotation direction of a specific motor.
-             * @param[in] motor Motor pointer.
-             * @param[in] dir Direction of movement.
+             * @brief Set rotation direction of the motors.
              */
-            void set_motor_direction(IMotor * & motor, MotorDirection dir);
+            void set_next_motor_direction();
 
             /** 
              * @brief Clean next path segment pointer.
@@ -123,24 +130,11 @@ namespace Robot {
             void clean_trajectory_buffer();
 
             /**
-             * @brief Avoid motor for passing an stablished absolute limit range.
+             * @brief Avoid motor for passing an established absolute limit range.
              * @return True if limits are reached.
              */
-            bool openLoopLimitCheck(IMotor * & motor);
+            bool openLoopLimitCheck(IMotor * motor);
 
     };
 
-    bool move_motor_callback(struct repeating_timer *t)
-    {
-        // If something is wrong with the timer, return false
-        if (!motor_sampler.isrTimeCheck())
-        {
-            return false;
-        }
-        static_cast<CartesianRobotClient *>(t->user_data)->move_motors();
-        // printf("String largo de prueba para romper el timer");
-        return true;
-    }
-
-} // namespace Robot
-} // namespace System
+} // namespace System::Robot

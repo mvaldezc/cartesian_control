@@ -1,21 +1,5 @@
 #include "state_manager.hpp"
 
-static StateManager * StateManager::getInstance()
-{
-    // Acquire mutex to avoid creation of multiple instances of class 
-    // by concurrent calls of this method.
-    lock_guard<mutex_t> mutexWrapper(createStateManagerMutex);
-
-    // If unique StateManager instance doesn't exist, create it.
-    if(stateManagerInstance == nullptr)
-    {
-        stateManagerInstance = new StateManager;
-    }
-
-    // Return singleton.
-    return stateManagerInstance;
-}
-
 void StateManager::setAction(Action instruction)
 {
     critical_section_enter_blocking(&stateManagerLock);
@@ -145,4 +129,4 @@ void StateManager::machineProcess()
     critical_section_exit(&stateManagerLock);
 }
 
-StateManager * StateManager::stateManagerInstance{nullptr};
+StateManager * StateManager::instance{nullptr};

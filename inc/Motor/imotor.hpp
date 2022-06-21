@@ -9,14 +9,14 @@
 
 #pragma once
 #include <cstdint>
-#include <string.h>
+#include <cstring>
 
 namespace Motor {
     
     enum class MotorDirection : bool
     {
-        CounterClockwise = 0,
-        Clockwise = 1
+        CounterClockwise = false,
+        Clockwise = true
     };
 
     enum class MotorType
@@ -32,7 +32,7 @@ namespace Motor {
     class IMotor
     {
         public:
-            IMotor(MotorType motorType) : motorType(motorType) {}
+            explicit IMotor(MotorType motorType) : motorType(motorType) {}
             virtual ~IMotor() = default;
             virtual void enableMotor() = 0;
             virtual void disableMotor() = 0;
@@ -40,12 +40,12 @@ namespace Motor {
             virtual void setHome() = 0;
             virtual int_fast32_t getAbsPosition() = 0;
 
-            bool isEnabled()
+            bool isEnabled() const
             {
                 return enabledFlag;
             }
 
-            MotorType getType()
+            MotorType getType() const
             {
                 return motorType;
             }

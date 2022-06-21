@@ -88,7 +88,7 @@ namespace Motor {
             /** 
              * @brief Setup board pins for motor control.
              */
-            void initPins();
+            void initPins() const;
 
             // Motor state variables
             volatile int_fast32_t stepCntAbs = 0;

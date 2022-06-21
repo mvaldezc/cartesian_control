@@ -31,8 +31,7 @@
 //   θx[w[t]] = Px/α = (θxf - θxo) * w + θxo 
 //   θy[w[t]] = Py/β = (θyf - θyo) * w + θyo
 
-namespace Algorithm {
-namespace TrajectoryGeneration {
+namespace Algorithm::TrajectoryGeneration {
 
     enum class InterpolationType
     {
@@ -50,16 +49,14 @@ namespace TrajectoryGeneration {
      */
     class ITrajectoryInterpolation {
         public:
-            ITrajectoryInterpolation(unsigned int delta_pos, double delta_time, double vel_0, double vel_f)
-                : d_pos(delta_pos), d_time(delta_time), vel_0(vel_0), vel_f(vel_f) {}
+            ITrajectoryInterpolation(unsigned int delta_pos, double delta_time)
+                : d_pos(delta_pos), d_time(delta_time) {}
 
             virtual ~ITrajectoryInterpolation() = default;
             virtual double interpolateMotion(double time) = 0;
 
             const unsigned int d_pos;
             const double d_time;
-            const double vel_0;
-            const double vel_f;
     };
 
     /**
@@ -143,7 +140,7 @@ namespace TrajectoryGeneration {
              * @param[in] time Time in seconds.
              * @return Parameter w[t] = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5 + a6*t^6 + a7*t^7 , w[t] ∈ [0,1]
              */
-            double interpolateMotion(double time);
+            double interpolateMotion(double time) override;
 
         private:
             double a[8] = {0}; // Polynomial coefficients
@@ -151,7 +148,7 @@ namespace TrajectoryGeneration {
 
     class TrapezoidInterpolation : public ITrajectoryInterpolation {
         public:
-            TrapezoidInterpolation(unsigned int delta_pos, unsigned int delta_time);
+            TrapezoidInterpolation(unsigned int delta_pos, double delta_time);
 
             double interpolateMotion(double time) override;
         
@@ -168,7 +165,7 @@ namespace TrajectoryGeneration {
 
     class SmoothInterpolation : public ITrajectoryInterpolation {
         public:
-            SmoothInterpolation(unsigned int delta_pos, unsigned int delta_time);
+            SmoothInterpolation(unsigned int delta_pos, double delta_time);
 
             double interpolateMotion(double time) override;
 
@@ -199,8 +196,7 @@ namespace TrajectoryGeneration {
             static void create(ITrajectoryInterpolation * & path_segment_ptr, 
                 InterpolationType path_type, unsigned int delta_pos, double delta_time);
         private:
-            InterpolationFactory(){};
+            InterpolationFactory()= default;;
     };
 
-} // namespace TrajectoryGeneration
-} // namespace Algorithm
+} // namespace Algorithm::TrajectoryGeneration

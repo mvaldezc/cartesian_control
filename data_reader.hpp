@@ -28,39 +28,19 @@ namespace Communication {
         Callback rxMsgCallback;
     } RxMessageDataTemplate;
 
-    static StateManager * stateManager = StateManager::getInstance();
+    void changeToJogCallback(void);
 
-    void changeToJogCallback(void)
-    {
-        stateManager->setAction(Action::Jog);
-    }
+    void changeToProgramCallback(void);
 
-    void changeToProgramCallback(void)
-    {
-        stateManager->setAction(Action::Program);
-    }
+    void receiveTrajectoryDataCallback(void);
 
-    void receiveTrajectoryDataCallback(void)
-    {
-        stateManager->setAction(Action::Data);
-    }
+    void cancelOperationCallback(void);
 
-    void cancelOperationCallback(void)
-    {
-        stateManager->setAction(Action::Cancel);
-    }
+    void startOperationCallback(void);
 
-    void startOperationCallback(void)
-    {
-        stateManager->setAction(Action::Start);
-    }
+    void emergencyStopCallback(void);
 
-    void emergencyStopCallback(void)
-    {
-        stateManager->setEmergencyStop();
-    }
-
-    std::unordered_map<RxMessageId, RxMessageDataTemplate> operationTable =
+    const std::unordered_map<RxMessageId, RxMessageDataTemplate> operationTable =
     {
         {CHANGE_TO_JOG, {0, &changeToJogCallback}},
         {CHANGE_TO_PROGRAM, {0, &changeToProgramCallback}},
@@ -70,28 +50,8 @@ namespace Communication {
         {EMERGENCY_STOP, {0, &emergencyStopCallback}}
     };
 
-    void rxCallback(RxMessageId msgId, uint8_t dataLength, volatile uint8_t * msgData)
-    {
-        // If message ID exist in message map
-        if(operationTable.count(msgId) == 1)
-        {
-            // If message length corresponds to operationTable length
-            if(dataLength == operationTable.at(msgId).length)
-            {
-                // If message handler exists
-                if(operationTable.at(msgId).rxMsgCallback != nullptr)
-                {
-                    // Call message handler
-                    operationTable.at(msgId).rxMsgCallback();
-                    machineProcess();
-                }
-            }
-        }
-    }
+    void rxCallback(RxMessageId msgId, uint8_t dataLength, volatile uint8_t * msgData);
 
-    void txCallback(uint8_t * msgData)
-    {
-        *msgData = 0x07;
-    }
+    void txCallback(uint8_t * msgData);
 
-}
+} // namespace Communication

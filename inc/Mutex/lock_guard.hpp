@@ -1,5 +1,5 @@
 #pragma once
-#include "pico/mutex"
+#include "pico/mutex.h"
 
 /**
  * @class lock_guard

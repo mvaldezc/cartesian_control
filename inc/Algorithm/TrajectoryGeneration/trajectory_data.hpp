@@ -8,8 +8,7 @@
 
 #pragma once
 
-namespace Algorithm {
-namespace TrajectoryGeneration {
+namespace Algorithm::TrajectoryGeneration {
 
 // Machine step size: 0.025 mm (1/40 mm)
 
@@ -26,5 +25,4 @@ typedef struct // size: (2.5 words = 10 bytes = 80 bits)
     unsigned int pos_z : 16;    // machine steps, max 1600 mm / 64000 steps / 320 revs
 } path_params_t;
 
-} // namespace TrajectoryGeneration
-} // namespace Algorithm
+} // namespace Algorithm::TrajectoryGeneration

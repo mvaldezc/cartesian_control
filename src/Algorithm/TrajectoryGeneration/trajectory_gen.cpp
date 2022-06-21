@@ -1,12 +1,11 @@
 #include "trajectory_gen.hpp"
 
-namespace Algorithm {
-namespace TrajectoryGeneration {
+namespace Algorithm::TrajectoryGeneration {
 
     //********************************** Linear Polynomial **********************************//
 
     LinearInterpolation::LinearInterpolation(unsigned int delta_pos, double delta_time)
-        : ITrajectoryInterpolation(delta_pos, delta_time, 0, 0)
+        : ITrajectoryInterpolation(delta_pos, delta_time)
     {
         // Time scaling w[t] ∈ [0,1]
         //   w[t] = a0 + a1*t
@@ -21,7 +20,7 @@ namespace TrajectoryGeneration {
     //********************************** Cubic Polynomial **********************************//
 
     CubicInterpolation::CubicInterpolation(unsigned int delta_pos, double delta_time)
-        : ITrajectoryInterpolation(delta_pos, delta_time, 0, 0)
+        : ITrajectoryInterpolation(delta_pos, delta_time)
     {
         // Time scaling w[t] ∈ [0,1]
         //   w[t] = a0 + a1*t + a2*t^2 + a3*t^3
@@ -37,7 +36,7 @@ namespace TrajectoryGeneration {
     //********************************** Quintic Polynomial **********************************//
 
     QuinticInterpolation::QuinticInterpolation(unsigned int delta_pos, double delta_time)
-        : ITrajectoryInterpolation(delta_pos, delta_time, 0, 0)
+        : ITrajectoryInterpolation(delta_pos, delta_time)
     {
         // Time scaling w[t] ∈ [0,1]
         //   w[t] = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5
@@ -54,7 +53,7 @@ namespace TrajectoryGeneration {
     //********************************** Septic Polynomial **********************************//
 
     SepticInterpolation::SepticInterpolation(unsigned int delta_pos, double delta_time)
-        : ITrajectoryInterpolation(delta_pos, delta_time, 0, 0)
+        : ITrajectoryInterpolation(delta_pos, delta_time)
     {
         // Time scaling w[t] ∈ [0,1]
         //   w[t] = a0 + a1*t + a2*t^2 + a3*t^3 + a4*t^4 + a5*t^5 + a6*t^6 + a7*t^7
@@ -72,8 +71,8 @@ namespace TrajectoryGeneration {
 
     //******************************** Trapezoid Velocity Profile ********************************//
 
-    TrapezoidInterpolation::TrapezoidInterpolation(unsigned int delta_pos, unsigned int delta_time)
-        : ITrajectoryInterpolation(delta_pos, delta_time, 0, 0)
+    TrapezoidInterpolation::TrapezoidInterpolation(unsigned int delta_pos, double delta_time)
+        : ITrajectoryInterpolation(delta_pos, delta_time)
     {
         //    accel = 2*thb/tb^2
         //    vel = accel*tb
@@ -113,7 +112,7 @@ namespace TrajectoryGeneration {
 
     double TrapezoidInterpolation::interpolateMotion(double time)
     {
-        if (check_flag == true)
+        if (check_flag)
         {
             if (time < tb)
             {
@@ -142,8 +141,8 @@ namespace TrajectoryGeneration {
 
     //****************************** Constant Velocity Septic Interpolation ******************************//
 
-    SmoothInterpolation::SmoothInterpolation(unsigned int delta_pos, unsigned int delta_time)
-        : ITrajectoryInterpolation(delta_pos, delta_time, 0, 0)
+    SmoothInterpolation::SmoothInterpolation(unsigned int delta_pos, double delta_time)
+        : ITrajectoryInterpolation(delta_pos, delta_time)
     {
         //  {(5 (2 qb + qf)^4)/(16 qb^3 tf^4)}, {-((3 (2 qb + qf)^5)/(16 qb^4 tf^5))}, {(2 qb + qf)^6/(32 qb^5 tf^6)}
 
@@ -175,7 +174,7 @@ namespace TrajectoryGeneration {
 
     double SmoothInterpolation::interpolateMotion(double time)
     {
-        if (check_flag == true)
+        if (check_flag)
         {
             if (time < tb)
             {
@@ -189,7 +188,6 @@ namespace TrajectoryGeneration {
             {
                 double time_c = time - d_time + tb;
                 return_val = a[1] * time_c - time_c * time_c * time_c * time_c * (a[4] + a[5] * time_c + a[6] * time_c * time_c) + d_pos - thb;
-                double temp = return_val * 2;
             }
             else
             {
@@ -231,5 +229,4 @@ namespace TrajectoryGeneration {
         }
     }
 
-} // namespace TrajectoryGeneration
-} // namespace Algorithm
+} // namespace Algorithm::TrajectoryGeneration
