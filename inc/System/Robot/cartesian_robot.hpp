@@ -10,6 +10,7 @@
 
 #include <memory>
 #include <utility>
+#include <unordered_map>
 #include "trajectory_gen.hpp"
 #include "trajectory_data.hpp"
 #include "stepper.hpp"
@@ -31,13 +32,8 @@ namespace System::Robot {
     } AxisSettings_t;
 
     //================== Constants definition ==================
-    constexpr uint64_t sampling_period_us = 250; // 200
     constexpr uint64_t step_pulse_width_us = 40; // 50
-    constexpr double sampling_period_sec = (double)sampling_period_us / 1000000;
     constexpr float um_to_cm_factor = (float) 1/10000;
-
-    //================ Global variables definition ================
-    static TimerIsrSampler motor_sampler(sampling_period_us);
 
     /**
      * @class CartesianRobotClient
@@ -51,8 +47,10 @@ namespace System::Robot {
     {
         public:
             CartesianRobotClient(std::shared_ptr<IMotor> motor_x, std::shared_ptr<IMotor> motor_y, 
-                std::shared_ptr<IMotor> motor_z)
-                : motor_x(std::move(motor_x)), motor_y(std::move(motor_y)), motor_z(std::move(motor_z))
+                std::shared_ptr<IMotor> motor_z, TimerIsrSampler & motor_sampler)
+                : motor_x(std::move(motor_x)), motor_y(std::move(motor_y)), motor_z(std::move(motor_z)), 
+                motor_sampler(motor_sampler), 
+                sampling_period_sec(static_cast<double>(motor_sampler.getSamplingPeriod_us()/1000000))
             {
                 // TODO check what happens if motors are nullptr
                 move_motor_timer_callback =
@@ -62,13 +60,6 @@ namespace System::Robot {
                         return true;
                     };
             }
-
-            ITrajectoryInterpolation * path_segment_buffer[3] = {nullptr, nullptr, nullptr};
-            path_params_t * path_list;
-            path_params_t * next_path;
-            std::shared_ptr<IMotor> motor_x;
-            std::shared_ptr<IMotor> motor_y;
-            std::shared_ptr<IMotor> motor_z;
 
 
             /**
@@ -88,16 +79,29 @@ namespace System::Robot {
              */
             void execute_routine(size_t list_size, path_params_t * path_list_ptr);
 
-            /**
-             * @brief Check if motors are ready to move and move them.
-             */
-            void move_motors();
 
             AxisSettings_t x_axis;
             AxisSettings_t y_axis;
             AxisSettings_t z_axis;
 
         private:
+            std::unordered_map<std::string, ITrajectoryInterpolation * > path_segment_buffer =
+            {
+                {"x", nullptr},
+                {"y", nullptr},
+                {"z", nullptr}
+            };
+            
+            path_params_t * path_list;
+            path_params_t * next_path;
+            std::shared_ptr<IMotor> motor_x;
+            std::shared_ptr<IMotor> motor_y;
+            std::shared_ptr<IMotor> motor_z;
+
+            TimerIsrSampler & motor_sampler;
+            const double sampling_period_sec;
+            isrTimerCallback_t move_motor_timer_callback = nullptr;
+
 
             volatile double w = 0;
             volatile int k = 0;
@@ -107,7 +111,12 @@ namespace System::Robot {
             volatile int pos_y = 0, pos_anterior_y = 0;
             volatile int pos_z = 0, pos_anterior_z = 0;
 
-            isrTimerCallback_t move_motor_timer_callback = nullptr;
+            
+
+            /**
+             * @brief Check if motors are ready to move and move them.
+             */
+            void move_motors();
 
             /**
              * @brief Save list of path segments.

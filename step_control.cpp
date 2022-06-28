@@ -21,20 +21,32 @@ int main()
     printf("Uart init completed\n");
 
     StateManager * stateManager = StateManager::getInstance();
-
+    auto via_points = std::make_shared<std::queue<path_data, std::list<path_data>>>();
+    DataManager<path_struct_ptr, path_data> dataHelper(via_points);
+    initDataManager(&dataHelper);
     I2CSlave::init(&rxCallback, &txCallback);
     printf("I2C init completed\n");
+
+
+    //================== Motor definition ==================
+    std::shared_ptr<IMotor> motor_x(new Stepper(200, 4, 5, 6));
+    std::shared_ptr<IMotor> motor_y(new Stepper(200, 7, 8, 9));
+    std::shared_ptr<IMotor> motor_z(new Stepper(200, 10, 11, 12));
+
+    //================== Timer definition ==================
+    constexpr uint64_t sampling_period_us = 250; // 200
+    TimerIsrSampler motor_sampler(sampling_period_us);
+
+    CartesianRobotClient welding_system(motor_x, motor_y, motor_z, motor_sampler);
 
     while(true){   
         busy_wait_ms(40);
     }
 
     /*
-    std::shared_ptr<IMotor> motor_x(new Stepper(200, 4, 5, 6));
-    std::shared_ptr<IMotor> motor_y(new Stepper(200, 7, 8, 9));
-    std::shared_ptr<IMotor> motor_z(new Stepper(200, 10, 11, 12));
+    
 
-    CartesianRobotClient welding_system(motor_x, motor_y, motor_z);
+    
 
     path_params_t via_points[5] = {
         {.path_type = static_cast<char>(InterpolationType::SmoothPoly),

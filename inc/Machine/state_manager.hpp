@@ -81,6 +81,8 @@ class StateManager
         };
         critical_section_t stateManagerLock;
 
+        bool dataPending = false;
+
     private: 
         static StateManager * instance;
 
@@ -112,5 +114,9 @@ class StateManager
         void setAction(Action instruction);
 
         void setEmergencyStop();
+
+        MachineState getMachineState();
+
+        bool isDataPending();
 
 };

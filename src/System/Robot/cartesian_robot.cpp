@@ -10,9 +10,9 @@ namespace System::Robot {
 
     void CartesianRobotClient::set_trajectory_buffer() 
     {
-        InterpolationFactory::create(path_segment_buffer[0], static_cast<InterpolationType>(next_path->path_type), next_path->pos_x, (next_path->time) / 4000.0);
-        InterpolationFactory::create(path_segment_buffer[1], static_cast<InterpolationType>(next_path->path_type), next_path->pos_y, (next_path->time) / 4000.0);
-        InterpolationFactory::create(path_segment_buffer[2], static_cast<InterpolationType>(next_path->path_type), next_path->pos_z, (next_path->time) / 4000.0);
+        InterpolationFactory::create(path_segment_buffer["x"], static_cast<InterpolationType>(next_path->path_type), next_path->pos_x, (next_path->time) / 4000.0);
+        InterpolationFactory::create(path_segment_buffer["y"], static_cast<InterpolationType>(next_path->path_type), next_path->pos_y, (next_path->time) / 4000.0);
+        InterpolationFactory::create(path_segment_buffer["z"], static_cast<InterpolationType>(next_path->path_type), next_path->pos_z, (next_path->time) / 4000.0);
         set_next_motor_direction();
     }
 
@@ -58,57 +58,57 @@ namespace System::Robot {
     }
 
     void CartesianRobotClient::clean_trajectory_buffer(){
-        delete path_segment_buffer[0];
-        delete path_segment_buffer[1];
-        delete path_segment_buffer[2];
-        path_segment_buffer[0] = nullptr;
-        path_segment_buffer[1] = nullptr;
-        path_segment_buffer[2] = nullptr;
+        delete path_segment_buffer["x"];
+        delete path_segment_buffer["y"];
+        delete path_segment_buffer["z"];
+        path_segment_buffer["x"] = nullptr;
+        path_segment_buffer["y"] = nullptr;
+        path_segment_buffer["z"] = nullptr;
         next_path++;
     }
 
     void CartesianRobotClient::move_motors()
     {
-        k++;
-        cnt = (double)k * sampling_period_sec;
-        w = this->path_segment_buffer[0]->interpolateMotion(cnt);
-        pos_x = (this->path_segment_buffer[0]->d_pos) * w;
+        cnt = (++k) * sampling_period_sec;
+        
+        w = path_segment_buffer["x"]->interpolateMotion(cnt);
+        pos_x = (path_segment_buffer["x"]->d_pos) * w;
         // pos_y = (pos_final_y - pos_inicial_y) * w + pos_inicial_y;
-        if (pos_x == (pos_anterior_x + 1) || cnt >= this->path_segment_buffer[0]->d_time)
+        if (pos_x == (pos_anterior_x + 1) || cnt >= path_segment_buffer["x"]->d_time)
         {
             if(motor_x->getType() == MotorType::Stepper){
                 static_cast<Motor::Stepper *>(motor_x.get())->step(step_pulse_width_us);
             }
             pos_anterior_x++;
-            if (pos_anterior_x == this->path_segment_buffer[0]->d_pos)
+            if (pos_anterior_x == path_segment_buffer["x"]->d_pos)
             {
                 finished = true;
             }
         }
 
-        w = this->path_segment_buffer[1]->interpolateMotion(cnt);
-        pos_y = (this->path_segment_buffer[1]->d_pos) * w;
-        if (pos_y == (pos_anterior_y + 1) || cnt >= this->path_segment_buffer[1]->d_time)
+        w = path_segment_buffer["y"]->interpolateMotion(cnt);
+        pos_y = (path_segment_buffer["y"]->d_pos) * w;
+        if (pos_y == (pos_anterior_y + 1) || cnt >= path_segment_buffer["y"]->d_time)
         {
             if(motor_y->getType() == MotorType::Stepper){
                 static_cast<Motor::Stepper *>(motor_y.get())->step(step_pulse_width_us);
             }
             pos_anterior_y++;
-            if (pos_anterior_y == this->path_segment_buffer[1]->d_pos)
+            if (pos_anterior_y == path_segment_buffer["y"]->d_pos)
             {
                 finished = true;
             }
         }
 
-        w = this->path_segment_buffer[2]->interpolateMotion(cnt);
-        pos_z = (this->path_segment_buffer[2]->d_pos) * w;
-        if (pos_z == (pos_anterior_z + 1) || cnt >= this->path_segment_buffer[2]->d_time)
+        w = path_segment_buffer["z"]->interpolateMotion(cnt);
+        pos_z = (path_segment_buffer["z"]->d_pos) * w;
+        if (pos_z == (pos_anterior_z + 1) || cnt >= path_segment_buffer["z"]->d_time)
         {
             if(motor_z->getType() == MotorType::Stepper){
                 static_cast<Motor::Stepper *>(motor_z.get())->step(step_pulse_width_us);
             }
             pos_anterior_z++;
-            if (pos_anterior_z == this->path_segment_buffer[2]->d_pos)
+            if (pos_anterior_z == path_segment_buffer["z"]->d_pos)
             {
                 finished = true;
             }

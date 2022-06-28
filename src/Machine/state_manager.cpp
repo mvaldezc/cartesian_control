@@ -16,6 +16,26 @@ void StateManager::setEmergencyStop()
     critical_section_exit(&stateManagerLock);
 }
 
+MachineState StateManager::getMachineState()
+{
+    critical_section_enter_blocking(&stateManagerLock);
+    MachineState returnval = machineData.state.mode;
+    critical_section_exit(&stateManagerLock);
+    return returnval;
+}
+
+bool StateManager::isDataPending()
+{
+    critical_section_enter_blocking(&stateManagerLock);
+    bool returnval = false;
+    if(dataPending){
+        returnval = true;
+    }
+    dataPending = false;
+    critical_section_exit(&stateManagerLock);
+    return returnval;
+}
+
 void StateManager::machineProcess()
 {
     critical_section_enter_blocking(&stateManagerLock);
@@ -66,6 +86,7 @@ void StateManager::machineProcess()
             {
                 case Action::Data:
                     printf("Program: Data\n");
+                    dataPending = true;
                     break;
                 case Action::Done:
                     machineData.state.mode = MachineState::WaitStart;

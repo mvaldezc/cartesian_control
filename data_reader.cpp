@@ -9,6 +9,7 @@
 
 namespace Communication {
 
+    static DataManager<path_struct_ptr, path_data> * internalDataManager;
     static StateManager *stateManager = StateManager::getInstance();
 
     void changeToJogCallback(void) {
@@ -35,16 +36,22 @@ namespace Communication {
         stateManager->setEmergencyStop();
     }
 
-    void rxCallback(RxMessageId msgId, uint8_t dataLength, volatile uint8_t *msgData) {
-        // If message ID exist in message map
-        if (operationTable.count(msgId) == 1) {
-            // If message length corresponds to operationTable length
-            if (dataLength == operationTable.at(msgId).length) {
+    void rxCallback(RxMessageId msgId, uint8_t dataLength, volatile uint8_t * msgData) 
+    {
+        // If message ID exist in messageDictionary
+        if (messageDictionary.count(msgId) == 1) {
+            // If message length corresponds to messageDictionary length
+            if (dataLength == messageDictionary.at(msgId).length) {
                 // If message handler exists
-                if (operationTable.at(msgId).rxMsgCallback != nullptr) {
+                if (messageDictionary.at(msgId).rxMsgCallback != nullptr) {
+                    
                     // Call message handler
-                    operationTable.at(msgId).rxMsgCallback();
+                    messageDictionary.at(msgId).rxMsgCallback();
                     stateManager->machineProcess();
+                    if(stateManager->isDataPending())
+                    {
+                        internalDataManager->saveSerializedData(dataLength, msgData);
+                    }
                 }
             }
         }
@@ -52,6 +59,10 @@ namespace Communication {
 
     void txCallback(uint8_t *msgData) {
         *msgData = 0x07;
+    }
+
+    void initDataManager(DataManager<path_struct_ptr, path_data> * dataManager) {
+        internalDataManager = dataManager;
     }
 
 } // namespace Communication

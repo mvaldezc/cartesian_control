@@ -22,7 +22,6 @@ namespace Sampler {
      * @brief Implementation of a periodic sampler using a timer interruption.
      * It executes a specified function each sampling time.
      * It checks if timer delay < 5% otherwise returns an error and stops.
-     * Sampling period range :  100 us  < T < 17 min
      */
     class TimerIsrSampler
     {
@@ -32,12 +31,22 @@ namespace Sampler {
         public:
             explicit TimerIsrSampler(uint64_t sampling_period_us) : samplingPeriod(sampling_period_us) {}
 
+            inline uint64_t getSamplingPeriod_us(){
+                return samplingPeriod;
+            }
+
             volatile bool errorFlag = false; // flag for timer error
 
         private:
 
             #ifdef RASP_PICO
             struct repeating_timer sampling_timer;
+
+            typedef struct {
+                TimerIsrSampler * timerIsrSamplerInstance;
+                void * user_data;
+                isrTimerCallback_t irq_handler;
+            }TimerData_t;
             #endif
             
             const uint64_t samplingPeriod;
@@ -56,11 +65,6 @@ namespace Sampler {
             inline void init(isrTimerCallback_t irq_handler, void * user_data)
             {
                 #ifdef RASP_PICO
-                typedef struct {
-                    TimerIsrSampler * timerIsrSamplerInstance;
-                    void * user_data;
-                    isrTimerCallback_t irq_handler;
-                }TimerData_t;
 
                 TimerData_t timer_data = {
                     .timerIsrSamplerInstance =  this,
