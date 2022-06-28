@@ -34,5 +34,6 @@
 # Directories
 /build/
 /.vscode/
+/.VSCodeCounter/
 .DS_Store
 !/.vscode/launch.json

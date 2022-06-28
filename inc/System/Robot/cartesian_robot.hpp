@@ -22,15 +22,6 @@ using namespace Sampler;
 
 namespace System::Robot {
 
-    typedef struct
-    {
-        float maxAbsDist_cm;
-        float minAbsDist_cm;
-        uint motorResolution_um;
-        uint rotationToLinearFactor_rev_cm;
-        uint maxSpeed_cm_s;
-    } AxisSettings_t;
-
     //================== Constants definition ==================
     constexpr uint64_t step_pulse_width_us = 40; // 50
     constexpr float um_to_cm_factor = (float) 1/10000;
@@ -46,10 +37,11 @@ namespace System::Robot {
     class CartesianRobotClient
     {
         public:
-            CartesianRobotClient(std::shared_ptr<IMotor> motor_x, std::shared_ptr<IMotor> motor_y, 
+            CartesianRobotClient(
+                std::shared_ptr<IMotor> motor_x, std::shared_ptr<IMotor> motor_y, 
                 std::shared_ptr<IMotor> motor_z, TimerIsrSampler & motor_sampler)
-                : motor_x(std::move(motor_x)), motor_y(std::move(motor_y)), motor_z(std::move(motor_z)), 
-                motor_sampler(motor_sampler), 
+                : motor_x(std::move(motor_x)), motor_y(std::move(motor_y)), 
+                motor_z(std::move(motor_z)), motor_sampler(motor_sampler),
                 sampling_period_sec(static_cast<double>(motor_sampler.getSamplingPeriod_us()/1000000))
             {
                 // TODO check what happens if motors are nullptr
@@ -74,15 +66,10 @@ namespace System::Robot {
 
             /**
              * @brief Execute a series of movements using 3 motors.
-             * @param[in] list_size Quantity of path segments.
-             * @param[in] path_list_ptr Pointer to path segments list.
+             * @param[in] path_list_ptr Pointer to path segments queue.
              */
-            void execute_routine(size_t list_size, path_params_t * path_list_ptr);
+            void execute_routine(path_list_t path_list_ptr);
 
-
-            AxisSettings_t x_axis;
-            AxisSettings_t y_axis;
-            AxisSettings_t z_axis;
 
         private:
             std::unordered_map<std::string, ITrajectoryInterpolation * > path_segment_buffer =
@@ -92,8 +79,8 @@ namespace System::Robot {
                 {"z", nullptr}
             };
             
-            path_params_t * path_list;
-            path_params_t * next_path;
+            path_list_t path_list;
+            path_params_t next_path;
             std::shared_ptr<IMotor> motor_x;
             std::shared_ptr<IMotor> motor_y;
             std::shared_ptr<IMotor> motor_z;
@@ -112,7 +99,6 @@ namespace System::Robot {
             volatile int pos_z = 0, pos_anterior_z = 0;
 
             
-
             /**
              * @brief Check if motors are ready to move and move them.
              */
@@ -121,29 +107,18 @@ namespace System::Robot {
             /**
              * @brief Save list of path segments.
              */
-            void save_path_list(path_params_t *path_list_ptr);
+            void save_path_list(path_list_t path_list_ptr);
 
             /**
              * @brief Prepare for next path segment interpolation.
              */
             void set_trajectory_buffer();
 
-            /**
-             * @brief Set rotation direction of the motors.
-             */
-            void set_next_motor_direction();
 
             /** 
              * @brief Clean next path segment pointer.
              */
             void clean_trajectory_buffer();
-
-            /**
-             * @brief Avoid motor for passing an established absolute limit range.
-             * @return True if limits are reached.
-             */
-            bool openLoopLimitCheck(IMotor * motor);
-
     };
 
 } // namespace System::Robot

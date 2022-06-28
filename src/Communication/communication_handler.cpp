@@ -5,11 +5,11 @@
  *
  ***********************************************************************/
 
-#include "data_reader.hpp"
+#include "communication_handler.hpp"
 
 namespace Communication {
 
-    static DataManager<path_struct_ptr, path_data> * internalDataManager;
+    static IDataHandler * internalDataHandler;
     static StateManager *stateManager = StateManager::getInstance();
 
     void changeToJogCallback(void) {
@@ -50,7 +50,7 @@ namespace Communication {
                     stateManager->machineProcess();
                     if(stateManager->isDataPending())
                     {
-                        internalDataManager->saveSerializedData(dataLength, msgData);
+                        internalDataHandler->saveSerializedData(dataLength, msgData);
                     }
                 }
             }
@@ -61,8 +61,8 @@ namespace Communication {
         *msgData = 0x07;
     }
 
-    void initDataManager(DataManager<path_struct_ptr, path_data> * dataManager) {
-        internalDataManager = dataManager;
+    void installDataHandler(IDataHandler * dataHandler) {
+        internalDataHandler = dataHandler;
     }
 
 } // namespace Communication

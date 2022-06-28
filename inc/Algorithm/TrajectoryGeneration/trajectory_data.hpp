@@ -7,10 +7,13 @@
  ***********************************************************************/
 
 #pragma once
+#include <queue>
+#include <list>
+#include <memory>
 
 namespace Algorithm::TrajectoryGeneration {
 
-// Machine step size: 0.025 mm (1/40 mm)
+// Machine step size: 0.025 mm (1/40 mm) (1/200 rev)
 
 typedef struct // size: (2.5 words = 10 bytes = 80 bits)
 {
@@ -26,3 +29,10 @@ typedef struct // size: (2.5 words = 10 bytes = 80 bits)
 } path_params_t;
 
 } // namespace Algorithm::TrajectoryGeneration
+
+using path_list_t = std::shared_ptr<
+                        std::queue<
+                            Algorithm::TrajectoryGeneration::path_params_t, 
+                            std::list<Algorithm::TrajectoryGeneration::path_params_t>
+                        >
+                    >;

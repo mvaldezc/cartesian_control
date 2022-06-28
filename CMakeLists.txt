@@ -26,7 +26,7 @@ add_executable(step_control
         src/System/Robot/cartesian_robot.cpp
         src/Communication/i2c_slave.cpp
         src/Machine/state_manager.cpp
-        data_reader.cpp)
+        src/Communication/communication_handler.cpp)
 
 pico_set_program_name(step_control "step_control")
 pico_set_program_version(step_control "0.1")
