@@ -31,7 +31,7 @@ namespace Sampler {
         public:
             explicit TimerIsrSampler(uint64_t sampling_period_us) : samplingPeriod(sampling_period_us) {}
 
-            inline uint64_t getSamplingPeriod_us(){
+            inline uint64_t getSamplingPeriod_us() const{
                 return samplingPeriod;
             }
 
@@ -114,7 +114,7 @@ namespace Sampler {
                 previousTime_us = currentTime_us;
 
                 // Check if timer is going too slow, then return an error
-                if (deltaTime_us > samplingPeriod * ERROR_THRESHOLD_FACTOR)
+                if ((double) deltaTime_us > (double) samplingPeriod * ERROR_THRESHOLD_FACTOR)
                 {
                     isrBlockingCnt++;
                     if (isrBlockingCnt > MAX_BLOCKING_CYCLES)

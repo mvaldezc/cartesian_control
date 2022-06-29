@@ -1,16 +1,16 @@
 #pragma once
-#include "idata_handler.hpp"
+#include <cstdint>
 
 template <typename P, typename T>
-class DataHandler : public IDataHandler
+class DataHandler
 {
     public:
-        DataHandler(P container): dataContainer(container){}
+        explicit DataHandler(P container): dataContainer(container){}
 
-        bool saveSerializedData(uint8_t dataLength, volatile uint8_t * msgData)
-        {                
+        bool saveSerializedData(const uint8_t dataLength, const volatile uint8_t * msgData)
+        {
             // If data was received and message is not null
-            if(dataLength > 0 && dataLength <=16 && msgData != nullptr){
+            if(dataLength > 0 && msgData != nullptr){
                 for(int i = 0; i < dataLength; i++){
                     dataBuffer.bytes[i] = *(msgData+i);
                 }
@@ -18,6 +18,15 @@ class DataHandler : public IDataHandler
                 return true;
             }
             return false;
+        }
+
+        void clearContainer()
+        {
+            long dataSize = dataContainer->size();
+            for(int i = 0; i < dataSize; i++)
+            {
+                dataContainer->pop();
+            }
         }
     private:
 

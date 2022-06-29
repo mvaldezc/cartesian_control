@@ -63,6 +63,16 @@ namespace Motor {
         #endif
     }
 
+    Stepper::~Stepper()
+    {
+        // Disable motor at destruction
+        enabledFlag = false;
+        #ifdef RASP_PICO
+        // Atomic bit clear of enable pin, send disable signal to motor
+        gpio_put(pinEn, true);
+        #endif
+    }
+
     void Stepper::initPins() const{
         #ifdef RASP_PICO
         gpio_init(pinEn);

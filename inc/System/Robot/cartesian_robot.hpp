@@ -24,7 +24,6 @@ namespace System::Robot {
 
     //================== Constants definition ==================
     constexpr uint64_t step_pulse_width_us = 40; // 50
-    constexpr float um_to_cm_factor = (float) 1/10000;
 
     /**
      * @class CartesianRobotClient
@@ -42,7 +41,7 @@ namespace System::Robot {
                 std::shared_ptr<IMotor> motor_z, TimerIsrSampler & motor_sampler)
                 : motor_x(std::move(motor_x)), motor_y(std::move(motor_y)), 
                 motor_z(std::move(motor_z)), motor_sampler(motor_sampler),
-                sampling_period_sec(static_cast<double>(motor_sampler.getSamplingPeriod_us()/1000000))
+                sampling_period_sec(motor_sampler.getSamplingPeriod_us()/1000000.0)
             {
                 // TODO check what happens if motors are nullptr
                 move_motor_timer_callback =
@@ -92,7 +91,7 @@ namespace System::Robot {
 
             volatile double w = 0;
             volatile int k = 0;
-            volatile double cnt;
+            volatile double cnt = 0;
             volatile bool finished = false;
             volatile int pos_x = 0, pos_anterior_x = 0;
             volatile int pos_y = 0, pos_anterior_y = 0;

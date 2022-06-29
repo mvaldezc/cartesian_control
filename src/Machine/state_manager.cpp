@@ -24,28 +24,16 @@ MachineState StateManager::getMachineState()
     return returnval;
 }
 
-bool StateManager::isDataPending()
-{
-    critical_section_enter_blocking(&stateManagerLock);
-    bool returnval = false;
-    if(dataPending){
-        returnval = true;
-    }
-    dataPending = false;
-    critical_section_exit(&stateManagerLock);
-    return returnval;
-}
-
 void StateManager::machineProcess()
 {
     critical_section_enter_blocking(&stateManagerLock);
 
-    // solo si action needed hacer algo
-    // solo si paro de emergencia ignorar el resto
+    // Only if action needed, do something
+    // Only if emergency is enabled, ignore everything else
     switch (machineData.key)
     {
         case (EMERGENCY_ENABLED | static_cast<uint32_t>(MachineState::Off)):
-        case (EMERGENCY_ENABLED | static_cast<uint32_t>(MachineState::PrepareMove)):
+        case (EMERGENCY_ENABLED | static_cast<uint32_t>(MachineState::LoadProgram)):
         case (EMERGENCY_ENABLED | static_cast<uint32_t>(MachineState::WaitStart)):
         case (EMERGENCY_ENABLED | static_cast<uint32_t>(MachineState::ExecuteProgram)):
         case (EMERGENCY_ENABLED | static_cast<uint32_t>(MachineState::Jog)):
@@ -60,10 +48,17 @@ void StateManager::machineProcess()
                     machineData.state.mode = MachineState::Jog;
                     printf("Off -> Jog\n");
                     break;
-                case Action::Program :
-                    machineData.state.mode = MachineState::PrepareMove;
-                    printf("Off -> Program\n");
+                case Action::Load :
+                    programLoaded = false;
+                    machineData.state.mode = MachineState::LoadProgram;
+                    printf("Off -> LoadProgram\n");
                     break;
+                case Action::Program :
+                    if(programLoaded)
+                    {
+                        machineData.state.mode = MachineState::WaitStart;
+                        printf("Off -> WaitStart\n");
+                    }
                 default:
                     break;
             }
@@ -81,14 +76,11 @@ void StateManager::machineProcess()
             }
             break;
             
-        case (static_cast<uint32_t>(MachineState::PrepareMove)):
+        case (static_cast<uint32_t>(MachineState::LoadProgram)):
             switch (instructionBuffer)
             {
-                case Action::Data:
-                    printf("Program: Data\n");
-                    dataPending = true;
-                    break;
                 case Action::Done:
+                    programLoaded = true;
                     machineData.state.mode = MachineState::WaitStart;
                     break;
                 case Action::Cancel:

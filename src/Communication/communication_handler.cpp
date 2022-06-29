@@ -9,30 +9,59 @@
 
 namespace Communication {
 
-    static IDataHandler * internalDataHandler;
+    static uint8_t programSize = 0;
+    static uint8_t dataCounter = 0;
+    using Algorithm::TrajectoryGeneration::path_params_t;
+    static std::unique_ptr<DataHandler<path_list_t, path_params_t>> trajectoryDataHandler;
     static StateManager *stateManager = StateManager::getInstance();
 
-    void changeToJogCallback(void) {
+    void changeToJogCallback(const volatile uint8_t * msgData) {
         stateManager->setAction(Action::Jog);
     }
 
-    void changeToProgramCallback(void) {
+    void changeToProgramCallback(const volatile uint8_t * msgData) {
         stateManager->setAction(Action::Program);
     }
 
-    void receiveTrajectoryDataCallback(void) {
-        stateManager->setAction(Action::Data);
+    void changeToLoadCallback(const volatile uint8_t * msgData) {
+        stateManager->setAction(Action::Load);
     }
 
-    void cancelOperationCallback(void) {
+    void downloadProgramCallback(const volatile uint8_t * msgData) {
+        if(stateManager->getMachineState() == MachineState::LoadProgram)
+        {
+            if(trajectoryDataHandler)
+            {
+                trajectoryDataHandler->clearContainer();
+                programSize = * msgData;
+                dataCounter = 0;
+            }
+        }
+    }
+
+    void receiveTrajectoryDataCallback(const volatile uint8_t * msgData) {
+        if(stateManager->getMachineState() == MachineState::LoadProgram)
+        {
+            if(trajectoryDataHandler && dataCounter < programSize)
+            {
+                trajectoryDataHandler->saveSerializedData(messageDictionary.at(TRAJECTORY_DATA).length, msgData);
+                if(++dataCounter == programSize)
+                {
+                    stateManager->setAction(Action::Done);
+                }
+            }
+        }
+    }
+
+    void cancelOperationCallback(const volatile uint8_t * msgData) {
         stateManager->setAction(Action::Cancel);
     }
 
-    void startOperationCallback(void) {
+    void startOperationCallback(const volatile uint8_t * msgData) {
         stateManager->setAction(Action::Start);
     }
 
-    void emergencyStopCallback(void) {
+    void emergencyStopCallback(const volatile uint8_t * msgData) {
         stateManager->setEmergencyStop();
     }
 
@@ -44,25 +73,20 @@ namespace Communication {
             if (dataLength == messageDictionary.at(msgId).length) {
                 // If message handler exists
                 if (messageDictionary.at(msgId).rxMsgCallback != nullptr) {
-                    
                     // Call message handler
-                    messageDictionary.at(msgId).rxMsgCallback();
+                    messageDictionary.at(msgId).rxMsgCallback(msgData);
                     stateManager->machineProcess();
-                    if(stateManager->isDataPending())
-                    {
-                        internalDataHandler->saveSerializedData(dataLength, msgData);
-                    }
                 }
             }
         }
     }
 
-    void txCallback(uint8_t *msgData) {
+    void txCallback(uint8_t * msgData) {
         *msgData = 0x07;
     }
 
-    void installDataHandler(IDataHandler * dataHandler) {
-        internalDataHandler = dataHandler;
+    void installDataContainer(path_list_t dataContainer) {
+        trajectoryDataHandler = std::make_unique<DataHandler<path_list_t, path_params_t>>(dataContainer);
     }
 
 } // namespace Communication

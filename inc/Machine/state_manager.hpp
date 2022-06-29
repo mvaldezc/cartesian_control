@@ -21,14 +21,14 @@ enum class Action : uint8_t
     Done = 0x03,
     Jog = 0x04,
     Program = 0x05,
-    Data = 0x06,
+    Load = 0x06,
     None = 0xFF
 };
 
 enum class MachineState : uint8_t
 {
     Off = 0x00,
-    PrepareMove = 0x01,
+    LoadProgram = 0x01,
     WaitStart = 0x02,
     ExecuteProgram = 0x03,
     Jog = 0x04,
@@ -81,7 +81,7 @@ class StateManager
         };
         critical_section_t stateManagerLock;
 
-        bool dataPending = false;
+        bool programLoaded = false;
 
     private: 
         static StateManager * instance;
@@ -116,7 +116,5 @@ class StateManager
         void setEmergencyStop();
 
         MachineState getMachineState();
-
-        bool isDataPending();
 
 };

@@ -90,7 +90,7 @@ namespace System::Robot {
     {
         cnt = (++k) * sampling_period_sec;
         
-        // pos = (pos_final - pos_inicial) * w + pos_inicial;
+        // pos = (pos_f - pos_i) * w + pos_i;
         if(path_segment_buffer["x"] != nullptr)
         {
             w = path_segment_buffer["x"]->interpolateMotion(cnt);

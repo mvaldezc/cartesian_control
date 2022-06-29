@@ -1,12 +1,10 @@
 #include <cstdio>
-#include <string.h> 
 #include <memory>
 #include "pico/stdlib.h"
 #include "i2c_slave.hpp"
 #include "communication_handler.hpp"
 #include "cartesian_robot.hpp"
 #include "state_manager.hpp"
-#include "data_handler.hpp"
 
 //================ Global variables definition ================
 
@@ -46,8 +44,7 @@ int main()
     printf("Robot init completed\n");
 
     //=============== Data Handler initialization ===============
-    DataHandler<path_list_t, path_params_t> dataHandler(via_points);
-    installDataHandler(&dataHandler);
+    installDataContainer(via_points);
     printf("Data Handler init completed\n");
 
     //=================== I2C initialization ===================
@@ -71,11 +68,9 @@ int main()
     while(true){   
         busy_wait_ms(40);
     }
+    return 0;
 
     /*
-    
-
-    
 
     path_params_t via_points[5] = {
         {.path_type = static_cast<char>(InterpolationType::SmoothPoly),
@@ -118,14 +113,5 @@ int main()
          .pos_x = 2000,
          .pos_y = 4000,
          .pos_z = 0}};
-
-    printf("Starting trajectory");
-    welding_system.execute_routine(5, via_points);
-    printf("Motor disabled");
-
-    
-
-    while (true);
     */
-    return 0;
 }

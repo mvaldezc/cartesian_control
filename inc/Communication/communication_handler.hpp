@@ -10,18 +10,21 @@
 #include <unordered_map>
 #include "message_format.hpp"
 #include "state_manager.hpp"
-#include "idata_handler.hpp"
+#include "data_handler.hpp"
+#include "trajectory_data.hpp"
 
 namespace Communication {
 
-    typedef void (*Callback)(void);
+    typedef void (*Callback)(const volatile uint8_t * msgData);
 
     constexpr RxMessageId CHANGE_TO_JOG = 0x00;
     constexpr RxMessageId CHANGE_TO_PROGRAM = 0x01;
-    constexpr RxMessageId TRAJECTORY_DATA = 0x02;
-    constexpr RxMessageId CANCEL_OPERATION = 0x03;
-    constexpr RxMessageId START_OPERATION = 0x04;
-    constexpr RxMessageId EMERGENCY_STOP = 0x05;
+    constexpr RxMessageId CHANGE_TO_LOAD = 0x02;
+    constexpr RxMessageId DOWNLOAD_PROGRAM = 0x03;
+    constexpr RxMessageId TRAJECTORY_DATA = 0x04;
+    constexpr RxMessageId CANCEL_OPERATION = 0x05;
+    constexpr RxMessageId START_OPERATION = 0x06;
+    constexpr RxMessageId EMERGENCY_STOP = 0x07;
 
     typedef struct 
     {
@@ -29,22 +32,28 @@ namespace Communication {
         Callback rxMsgCallback;
     } RxMessageDataTemplate;
 
-    void changeToJogCallback(void);
+    void changeToJogCallback(const volatile uint8_t * msgData);
 
-    void changeToProgramCallback(void);
+    void changeToProgramCallback(const volatile uint8_t * msgData);
 
-    void receiveTrajectoryDataCallback(void);
+    void changeToLoadCallback(const volatile uint8_t * msgData);
 
-    void cancelOperationCallback(void);
+    void downloadProgramCallback(const volatile uint8_t * msgData);
 
-    void startOperationCallback(void);
+    void receiveTrajectoryDataCallback(const volatile uint8_t * msgData);
 
-    void emergencyStopCallback(void);
+    void cancelOperationCallback(const volatile uint8_t * msgData);
+
+    void startOperationCallback(const volatile uint8_t * msgData);
+
+    void emergencyStopCallback(const volatile uint8_t * msgData);
 
     const std::unordered_map<RxMessageId, RxMessageDataTemplate> messageDictionary =
     {
         {CHANGE_TO_JOG, {0, &changeToJogCallback}},
         {CHANGE_TO_PROGRAM, {0, &changeToProgramCallback}},
+        {CHANGE_TO_LOAD, {0, &changeToLoadCallback}},
+        {DOWNLOAD_PROGRAM, {1, &downloadProgramCallback}},
         {TRAJECTORY_DATA, {10, &receiveTrajectoryDataCallback}},
         {CANCEL_OPERATION, {0, &cancelOperationCallback}},
         {START_OPERATION, {0, &startOperationCallback}},
@@ -55,6 +64,6 @@ namespace Communication {
 
     void txCallback(uint8_t * msgData);
 
-    void installDataHandler(IDataHandler * dataHandler);
+    void installDataContainer(path_list_t & dataContainer);
 
 } // namespace Communication

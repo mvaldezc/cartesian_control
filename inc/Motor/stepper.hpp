@@ -43,7 +43,7 @@ namespace Motor {
                 this->initPins();       // Setup board pins for motor control
             }
 
-            ~Stepper() { this->disableMotor(); } // Custom destructor
+            ~Stepper(); // Custom destructor
 
             Stepper(const Stepper &) = delete; // Copy constructor
 
