@@ -11,6 +11,7 @@
 #include <memory>
 #include <utility>
 #include <unordered_map>
+#include "atomic.hpp"
 #include "trajectory_gen.hpp"
 #include "trajectory_data.hpp"
 #include "stepper.hpp"
@@ -43,7 +44,6 @@ namespace System::Robot {
                 motor_z(std::move(motor_z)), motor_sampler(motor_sampler),
                 sampling_period_sec(motor_sampler.getSamplingPeriod_us()/1000000.0)
             {
-                // TODO check what happens if motors are nullptr
                 move_motor_timer_callback =
                     [](void * t)
                     {
@@ -67,7 +67,7 @@ namespace System::Robot {
              * @brief Execute a series of movements using 3 motors.
              * @param[in] path_queue_ptr Pointer to path segments queue.
              */
-            void execute_routine(path_queue_t path_queue_ptr);
+            void execute_routine(path_list_t path_queue_ptr);
 
 
         private:
@@ -78,7 +78,7 @@ namespace System::Robot {
                 {"z", nullptr}
             };
             
-            path_queue_t path_queue;
+            path_list_t path_list;
             path_params_t next_path;
             
             std::shared_ptr<IMotor> motor_x;
@@ -89,11 +89,14 @@ namespace System::Robot {
             const double sampling_period_sec;
             isrTimerCallback_t move_motor_timer_callback = nullptr;
 
+            atomic_bool cancel_flag;
+            atomic_bool pause_flag;
+            volatile bool finished = false;
 
             volatile double w = 0;
             volatile int k = 0;
             volatile double cnt = 0;
-            volatile bool finished = false;
+            
             volatile int pos_x = 0, pos_anterior_x = 0;
             volatile int pos_y = 0, pos_anterior_y = 0;
             volatile int pos_z = 0, pos_anterior_z = 0;
@@ -107,9 +110,9 @@ namespace System::Robot {
             /**
              * @brief Save list of path segments.
              */
-            inline void save_path_list(path_queue_t & path_queue_ptr)
+            inline void save_path_list(path_list_t & path_list_ptr)
             {
-                path_queue = std::move(path_queue_ptr);
+                path_list = std::move(path_list_ptr);
             }
 
             /**

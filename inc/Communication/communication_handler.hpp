@@ -64,6 +64,6 @@ namespace Communication {
 
     void txCallback(uint8_t * msgData);
 
-    void installDataContainer(path_queue_t via_points);
+    void installDataContainer(path_list_t via_points);
 
 } // namespace Communication

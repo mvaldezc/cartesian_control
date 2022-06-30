@@ -25,7 +25,7 @@ int main()
     printf("State Machine init completed\n");
 
     //============== Data Structure instantiation ==============
-    auto via_points = std::make_shared<std::queue<path_params_t, std::list<path_params_t>>>();
+    auto via_points = std::make_shared<std::list<path_params_t>>();
     printf("Data Structure instantiated\n");
 
     //==================== Motor definition ====================
@@ -53,7 +53,7 @@ int main()
 
     printf("System Fully Initialized\n");
 
-    via_points->push(
+    via_points->push_back(
         {.path_type = static_cast<char>(InterpolationType::SmoothPoly),
          .dir_x = static_cast<bool>(MotorDirection::Clockwise),
          .dir_y = static_cast<bool>(MotorDirection::CounterClockwise),
@@ -63,10 +63,19 @@ int main()
          .pos_y = 4000,
          .pos_z = 0});
 
-    welding_system.execute_routine(via_points);
 
     while(true){   
-        busy_wait_ms(40);
+        busy_wait_ms(200);
+        switch (stateManager->getMachineState())
+        {
+            case MachineState::ExecuteProgram:
+                welding_system.execute_routine(via_points);
+                stateManager->setAction(Action::Done);
+                break;
+            
+            default:
+                break;
+        }
     }
     return 0;
 

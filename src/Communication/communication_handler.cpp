@@ -13,7 +13,7 @@ namespace Communication {
 
     static uint8_t programSize = 0, dataCounter= 0;
     static path_params_t buffer;
-    static path_queue_t pathQueue;
+    static path_list_t pathList;
 
     static StateManager *stateManager = StateManager::getInstance();
 
@@ -32,8 +32,8 @@ namespace Communication {
     void downloadProgramCallback(const volatile uint8_t * msgData) {
         if(stateManager->getMachineState() == MachineState::LoadProgram)
         {
-            path_queue_t empty;
-            std::swap((*pathQueue), (*empty)); // to erase data structure quickly
+            path_list_t empty;
+            std::swap((*pathList), (*empty)); // to erase data structure quickly
             programSize = * msgData;
             dataCounter = 0;
         }
@@ -45,7 +45,7 @@ namespace Communication {
             if(dataCounter < programSize)
             {
                 memcpy(&buffer, (const void *)msgData, messageDictionary.at(TRAJECTORY_DATA).length);
-                pathQueue->push(buffer);
+                pathList->push_back(buffer);
                 if(++dataCounter == programSize)
                     stateManager->setAction(Action::Done);
             }
@@ -84,9 +84,9 @@ namespace Communication {
         *msgData = 0x07;
     }
 
-    void installDataContainer(path_queue_t via_points)
+    void installDataContainer(path_list_t via_points)
     {
-        pathQueue = std::move(via_points);
+        pathList = std::move(via_points);
     }
 
 } // namespace Communication

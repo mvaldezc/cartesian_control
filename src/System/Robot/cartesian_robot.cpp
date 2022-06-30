@@ -42,16 +42,15 @@ namespace System::Robot {
             motor_z->disableMotor();
     }
 
-    void CartesianRobotClient::execute_routine(path_queue_t path_queue_ptr)
+    void CartesianRobotClient::execute_routine(path_list_t path_list_ptr)
     {
-        save_path_list(path_queue_ptr);
-        if(path_queue)
+        save_path_list(path_list_ptr);
+        if(path_list)
         {
-            long queue_size = path_queue->size();
-            next_path = path_queue->front();
             enable_motors();
-            for (int i = 0; i < queue_size; i++)
+            for(auto it = path_list->begin(); it != path_list->end(); ++it)
             {
+                next_path = *it;
                 set_trajectory_buffer();
                 motor_sampler.init(move_motor_timer_callback, this);
                 while (!motor_sampler.errorFlag && !finished);
@@ -77,8 +76,6 @@ namespace System::Robot {
         path_segment_buffer["x"] = nullptr;
         path_segment_buffer["y"] = nullptr;
         path_segment_buffer["z"] = nullptr;
-        path_queue->pop();
-        next_path = path_queue->front();
     }
 
     void CartesianRobotClient::move_motors()
