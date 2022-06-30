@@ -8,9 +8,9 @@
 #pragma once
 #include <cstdint>
 #include <unordered_map>
+#include <cstring>
 #include "message_format.hpp"
 #include "state_manager.hpp"
-#include "data_handler.hpp"
 #include "trajectory_data.hpp"
 
 namespace Communication {
@@ -64,6 +64,6 @@ namespace Communication {
 
     void txCallback(uint8_t * msgData);
 
-    void installDataContainer(path_list_t & dataContainer);
+    void installDataContainer(path_queue_t via_points);
 
 } // namespace Communication

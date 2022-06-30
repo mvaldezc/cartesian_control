@@ -30,7 +30,7 @@ typedef struct // size: (2.5 words = 10 bytes = 80 bits)
 
 } // namespace Algorithm::TrajectoryGeneration
 
-using path_list_t = std::shared_ptr<
+using path_queue_t = std::shared_ptr<
                         std::queue<
                             Algorithm::TrajectoryGeneration::path_params_t, 
                             std::list<Algorithm::TrajectoryGeneration::path_params_t>

@@ -9,10 +9,12 @@
 
 namespace Communication {
 
-    static uint8_t programSize = 0;
-    static uint8_t dataCounter = 0;
     using Algorithm::TrajectoryGeneration::path_params_t;
-    static std::unique_ptr<DataHandler<path_list_t, path_params_t>> trajectoryDataHandler;
+
+    static uint8_t programSize = 0, dataCounter= 0;
+    static path_params_t buffer;
+    static path_queue_t pathQueue;
+
     static StateManager *stateManager = StateManager::getInstance();
 
     void changeToJogCallback(const volatile uint8_t * msgData) {
@@ -30,25 +32,22 @@ namespace Communication {
     void downloadProgramCallback(const volatile uint8_t * msgData) {
         if(stateManager->getMachineState() == MachineState::LoadProgram)
         {
-            if(trajectoryDataHandler)
-            {
-                trajectoryDataHandler->clearContainer();
-                programSize = * msgData;
-                dataCounter = 0;
-            }
+            path_queue_t empty;
+            std::swap((*pathQueue), (*empty)); // to erase data structure quickly
+            programSize = * msgData;
+            dataCounter = 0;
         }
     }
 
     void receiveTrajectoryDataCallback(const volatile uint8_t * msgData) {
         if(stateManager->getMachineState() == MachineState::LoadProgram)
         {
-            if(trajectoryDataHandler && dataCounter < programSize)
+            if(dataCounter < programSize)
             {
-                trajectoryDataHandler->saveSerializedData(messageDictionary.at(TRAJECTORY_DATA).length, msgData);
+                memcpy(&buffer, (const void *)msgData, messageDictionary.at(TRAJECTORY_DATA).length);
+                pathQueue->push(buffer);
                 if(++dataCounter == programSize)
-                {
                     stateManager->setAction(Action::Done);
-                }
             }
         }
     }
@@ -85,8 +84,9 @@ namespace Communication {
         *msgData = 0x07;
     }
 
-    void installDataContainer(path_list_t dataContainer) {
-        trajectoryDataHandler = std::make_unique<DataHandler<path_list_t, path_params_t>>(dataContainer);
+    void installDataContainer(path_queue_t via_points)
+    {
+        pathQueue = std::move(via_points);
     }
 
 } // namespace Communication

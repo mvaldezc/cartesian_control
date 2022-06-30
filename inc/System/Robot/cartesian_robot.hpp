@@ -65,9 +65,9 @@ namespace System::Robot {
 
             /**
              * @brief Execute a series of movements using 3 motors.
-             * @param[in] path_list_ptr Pointer to path segments queue.
+             * @param[in] path_queue_ptr Pointer to path segments queue.
              */
-            void execute_routine(path_list_t path_list_ptr);
+            void execute_routine(path_queue_t path_queue_ptr);
 
 
         private:
@@ -78,8 +78,9 @@ namespace System::Robot {
                 {"z", nullptr}
             };
             
-            path_list_t path_list;
+            path_queue_t path_queue;
             path_params_t next_path;
+            
             std::shared_ptr<IMotor> motor_x;
             std::shared_ptr<IMotor> motor_y;
             std::shared_ptr<IMotor> motor_z;
@@ -106,7 +107,10 @@ namespace System::Robot {
             /**
              * @brief Save list of path segments.
              */
-            void save_path_list(path_list_t path_list_ptr);
+            inline void save_path_list(path_queue_t & path_queue_ptr)
+            {
+                path_queue = std::move(path_queue_ptr);
+            }
 
             /**
              * @brief Prepare for next path segment interpolation.
