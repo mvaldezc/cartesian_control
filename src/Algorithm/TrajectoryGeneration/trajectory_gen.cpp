@@ -202,9 +202,10 @@ namespace Algorithm::TrajectoryGeneration {
         return 0.0;
     }
 
-    void InterpolationFactory::create(ITrajectoryInterpolation *&path_segment_ptr,
+    std::unique_ptr<ITrajectoryInterpolation> InterpolationFactory::create(
         InterpolationType path_type, unsigned int delta_pos, double delta_time)
     {
+        ITrajectoryInterpolation * path_segment_ptr = nullptr;
         // Allocate interpolation class in heap depending on interpolation type.
         switch (path_type)
         {
@@ -227,6 +228,7 @@ namespace Algorithm::TrajectoryGeneration {
                 path_segment_ptr = new SmoothInterpolation(delta_pos, delta_time);
                 break;
         }
+        return std::make_unique<ITrajectoryInterpolation>(path_segment_ptr);
     }
 
 } // namespace Algorithm::TrajectoryGeneration

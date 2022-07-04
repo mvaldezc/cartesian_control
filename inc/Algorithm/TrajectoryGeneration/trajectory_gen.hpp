@@ -7,6 +7,7 @@
  ***********************************************************************/
 
 #pragma once
+#include <memory>
 
 // This library assumes joint interpolation is the same as task interpolation for cartesian robots.
 // Example:
@@ -188,15 +189,15 @@ namespace Algorithm::TrajectoryGeneration {
         public: 
             /**
              * @brief Prepares a specific trajectory interpolation type.
-             * @param[out] path_segment_ptr Pointer to trajectory interpolation that will be used in next path.
              * @param[in] path_type Type of the next required interpolation.
              * @param[in] delta_pos Amount of steps for next path_segment.
              * @param[in] delta_time Amount of time for next path_segment.
+             * @return Pointer to trajectory interpolation that will be used in next path.
              */
-            static void create(ITrajectoryInterpolation * & path_segment_ptr, 
+            static std::unique_ptr<ITrajectoryInterpolation> create(
                 InterpolationType path_type, unsigned int delta_pos, double delta_time);
         private:
-            InterpolationFactory()= default;;
+            InterpolationFactory() = default;
     };
 
 } // namespace Algorithm::TrajectoryGeneration

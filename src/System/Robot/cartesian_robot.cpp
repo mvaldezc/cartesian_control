@@ -7,19 +7,19 @@ namespace System::Robot {
         if(motor_x)
         {
             motor_x->setDirection(static_cast<MotorDirection>(next_path.dir_x));
-            InterpolationFactory::create(path_segment_buffer["x"], static_cast<InterpolationType>(next_path.path_type), 
+            path_segment_buffer["x"] = InterpolationFactory::create(static_cast<InterpolationType>(next_path.path_type),
             next_path.pos_x, (next_path.time) / 4000.0);
         }
         if(motor_y)
         {
             motor_y->setDirection(static_cast<MotorDirection>(next_path.dir_y));
-            InterpolationFactory::create(path_segment_buffer["y"], static_cast<InterpolationType>(next_path.path_type), 
+            path_segment_buffer["y"] = InterpolationFactory::create(static_cast<InterpolationType>(next_path.path_type),
             next_path.pos_y, (next_path.time) / 4000.0);
         }
         if(motor_z)
         {
             motor_z->setDirection(static_cast<MotorDirection>(next_path.dir_z));
-            InterpolationFactory::create(path_segment_buffer["z"], static_cast<InterpolationType>(next_path.path_type), 
+            path_segment_buffer["z"] = InterpolationFactory::create(static_cast<InterpolationType>(next_path.path_type),
             next_path.pos_z, (next_path.time) / 4000.0);
         }
     }
@@ -70,12 +70,9 @@ namespace System::Robot {
     }
 
     void CartesianRobotClient::clean_trajectory_buffer(){
-        delete path_segment_buffer["x"];
-        delete path_segment_buffer["y"];
-        delete path_segment_buffer["z"];
-        path_segment_buffer["x"] = nullptr;
-        path_segment_buffer["y"] = nullptr;
-        path_segment_buffer["z"] = nullptr;
+        path_segment_buffer["x"].reset(nullptr);
+        path_segment_buffer["y"].reset(nullptr);
+        path_segment_buffer["z"].reset(nullptr);
     }
 
     void CartesianRobotClient::move_motors()
@@ -89,9 +86,7 @@ namespace System::Robot {
             pos_x = (path_segment_buffer["x"]->d_pos) * w;
             if (pos_x == (pos_anterior_x + 1) || cnt >= path_segment_buffer["x"]->d_time)
             {
-                if(motor_x->getType() == MotorType::Stepper){
-                    static_cast<Motor::Stepper *>(motor_x.get())->step(step_pulse_width_us);
-                }
+                motor_x->step();
                 pos_anterior_x++;
                 if (pos_anterior_x == path_segment_buffer["x"]->d_pos)
                 {
@@ -106,9 +101,7 @@ namespace System::Robot {
             pos_y = (path_segment_buffer["y"]->d_pos) * w;
             if (pos_y == (pos_anterior_y + 1) || cnt >= path_segment_buffer["y"]->d_time)
             {
-                if(motor_y->getType() == MotorType::Stepper){
-                    static_cast<Motor::Stepper *>(motor_y.get())->step(step_pulse_width_us);
-                }
+                motor_y->step();
                 pos_anterior_y++;
                 if (pos_anterior_y == path_segment_buffer["y"]->d_pos)
                 {
@@ -123,9 +116,7 @@ namespace System::Robot {
             pos_z = (path_segment_buffer["z"]->d_pos) * w;
             if (pos_z == (pos_anterior_z + 1) || cnt >= path_segment_buffer["z"]->d_time)
             {
-                if(motor_z->getType() == MotorType::Stepper){
-                    static_cast<Motor::Stepper *>(motor_z.get())->step(step_pulse_width_us);
-                }
+                motor_z->step();
                 pos_anterior_z++;
                 if (pos_anterior_z == path_segment_buffer["z"]->d_pos)
                 {

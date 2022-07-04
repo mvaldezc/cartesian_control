@@ -2,7 +2,7 @@
 
 namespace Motor {
 
-    bool Stepper::step(uint32_t pulse_width_us)
+    bool Stepper::step()
     {
         // Return if motor is not enabled or emergency stop happened
         if (!enabledFlag){
@@ -15,7 +15,7 @@ namespace Motor {
             //  Execute step
             #ifdef RASP_PICO
             gpio_put(pinStep, true);
-            busy_wait_us(pulse_width_us);
+            busy_wait_us(STEP_WIDTH_US);
             gpio_put(pinStep, false);
             #endif
 

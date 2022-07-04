@@ -7,7 +7,6 @@
  ***********************************************************************/
 
 #pragma once
-#include <queue>
 #include <list>
 #include <memory>
 
@@ -15,7 +14,7 @@ namespace Algorithm::TrajectoryGeneration {
 
 // Machine step size: 0.025 mm (1/40 mm) (1/200 rev)
 
-typedef struct // size: (2.5 words = 10 bytes = 80 bits)
+struct path_params_t// size: (2.5 words = 10 bytes = 80 bits)
 {
     unsigned int path_type : 5; // 32 types of movement/interpolations
     unsigned int dir_x : 1;     // 0 is CCW, 1 is CW
@@ -26,7 +25,7 @@ typedef struct // size: (2.5 words = 10 bytes = 80 bits)
     unsigned int pos_x : 16;    // machine steps, max 1600 mm / 64000 steps / 320 revs
     unsigned int pos_y : 16;    // machine steps, max 1600 mm / 64000 steps / 320 revs
     unsigned int pos_z : 16;    // machine steps, max 1600 mm / 64000 steps / 320 revs
-} path_params_t;
+};
 
 } // namespace Algorithm::TrajectoryGeneration
 

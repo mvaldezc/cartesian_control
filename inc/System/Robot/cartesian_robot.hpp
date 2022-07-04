@@ -23,9 +23,6 @@ using namespace Sampler;
 
 namespace System::Robot {
 
-    //================== Constants definition ==================
-    constexpr uint64_t step_pulse_width_us = 40; // 50
-
     /**
      * @class CartesianRobotClient
      * @brief Manages the resources required for a classic cartesian robot.
@@ -50,6 +47,9 @@ namespace System::Robot {
                         static_cast<CartesianRobotClient * >(t)->move_motors();
                         return true;
                     };
+                path_segment_buffer.insert({"x", nullptr});
+                path_segment_buffer.insert({"y", nullptr});
+                path_segment_buffer.insert({"z", nullptr});
             }
 
 
@@ -71,12 +71,7 @@ namespace System::Robot {
 
 
         private:
-            std::unordered_map<std::string, ITrajectoryInterpolation * > path_segment_buffer =
-            {
-                {"x", nullptr},
-                {"y", nullptr},
-                {"z", nullptr}
-            };
+            std::unordered_map<std::string, std::unique_ptr<ITrajectoryInterpolation> > path_segment_buffer;
             
             path_list_t path_list;
             path_params_t next_path;

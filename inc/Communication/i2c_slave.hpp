@@ -83,8 +83,8 @@ namespace Communication {
 
         private:
             I2CSlave()= default; // Private constructor to avoid instance creation
-            static volatile RxHandler rxHandler;
-            static volatile TxHandler txHandler;
+            static RxHandler rxHandler;
+            static TxHandler txHandler;
             static volatile uint8_t rxBuffer[I2C_BUFFER_SIZE];
             static volatile uint8_t receivedDataLength;
             

@@ -18,6 +18,9 @@
 #endif
 
 namespace Motor {
+
+    //================== Constants definition ==================
+    constexpr uint64_t STEP_WIDTH_US = 40; //
     
     /**
      * @class Stepper
@@ -49,14 +52,11 @@ namespace Motor {
 
             Stepper & operator=(const Stepper &) = delete; //Copy assignment operator
 
-            Stepper(Stepper &&) = default; // Move constructor
-
             /**
              * @brief Advance one step.
-             * @param[in] pulse_width_us Period of the pulse. Time between rising and falling edge.
              * @return True if the step pulse was sent.
              */ 
-            bool step(uint32_t pulse_width_us);
+            bool step() override;
 
             /**
              * @brief Enable motor output.

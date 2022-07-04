@@ -39,6 +39,7 @@ namespace Motor {
             virtual void setDirection(MotorDirection direction) = 0;
             virtual void setHome() = 0;
             virtual int_fast32_t getAbsPosition() = 0;
+            virtual bool step() = 0;
 
             bool isEnabled() const
             {
