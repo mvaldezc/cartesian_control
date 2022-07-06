@@ -5,6 +5,7 @@
 #include "communication_handler.hpp"
 #include "cartesian_robot.hpp"
 #include "state_manager.hpp"
+#include "atomic.hpp"
 
 //================ Global variables definition ================
 
@@ -25,7 +26,7 @@ int main()
     printf("State Machine init completed\n");
 
     //============== Data Structure instantiation ==============
-    auto via_points = std::make_shared<std::list<path_params_t>>();
+    path_list_t via_points = createPathList();
     printf("Data Structure instantiated\n");
 
     //==================== Motor definition ====================
@@ -63,16 +64,33 @@ int main()
          .pos_y = 4000,
          .pos_z = 0});
 
+    /*atomic_*/bool stop = false;
+    bool started = false;
 
     while(true){   
         busy_wait_ms(200);
         switch (stateManager->getMachineState())
         {
             case MachineState::ExecuteProgram:
-                welding_system.execute_routine(via_points);
+                stop = false;
+                if(started)
+                {
+                    welding_system.resume_execution();
+                }
+                else
+                {
+                    started = true;
+                    welding_system.execute_routine(via_points, [&stop](){if(stop) return true;});
+                }
                 stateManager->setAction(Action::Done);
                 break;
-            
+            case MachineState::ProgramStop:
+                stop = true;
+                break;
+            case MachineState::Off:
+                started = false;
+                stop = true;
+                break;
             default:
                 break;
         }

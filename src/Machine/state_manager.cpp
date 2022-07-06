@@ -1,6 +1,6 @@
 #include "state_manager.hpp"
 
-void StateManager::setAction(Action instruction)
+void StateManager::setAction(Action && instruction)
 {
     critical_section_enter_blocking(&stateManagerLock);
     instance->instructionBuffer = instruction;
@@ -111,11 +111,25 @@ void StateManager::machineProcess()
         case (static_cast<uint32_t>(MachineState::ExecuteProgram)):
             switch (instructionBuffer)
             {
-                case Action::Next:
+                case Action::Stop:
+                    machineData.state.mode = MachineState::ProgramStop;
                     break;
                 case Action::Done:
                     machineData.state.mode = MachineState::Off;
                     break;
+                default:
+                    break;
+            }
+            break;
+
+        case (static_cast<uint32_t>(MachineState::ProgramStop)):
+            switch (instructionBuffer)
+            {
+                case Action::Start:
+                    machineData.state.mode = MachineState::ExecuteProgram;
+                    break;
+                case Action::Cancel:
+                    machineData.state.mode = MachineState::Off;
                 default:
                     break;
             }

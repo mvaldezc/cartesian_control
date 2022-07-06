@@ -60,6 +60,10 @@ namespace Communication {
         stateManager->setAction(Action::Start);
     }
 
+    void stopOperationCallback(const volatile uint8_t * msgData) {
+        stateManager->setAction(Action::Stop);
+    }
+
     void emergencyStopCallback(const volatile uint8_t * msgData) {
         stateManager->setEmergencyStop();
     }

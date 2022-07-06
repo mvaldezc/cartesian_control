@@ -30,3 +30,8 @@ struct path_params_t// size: (2.5 words = 10 bytes = 80 bits)
 } // namespace Algorithm::TrajectoryGeneration
 
 using path_list_t = std::shared_ptr<std::list<Algorithm::TrajectoryGeneration::path_params_t>>;
+
+inline path_list_t createPathList()
+{
+    return std::make_shared<std::list<Algorithm::TrajectoryGeneration::path_params_t>>();
+}

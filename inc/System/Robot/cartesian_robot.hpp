@@ -11,6 +11,7 @@
 #include <memory>
 #include <utility>
 #include <unordered_map>
+#include <functional>
 #include "atomic.hpp"
 #include "trajectory_gen.hpp"
 #include "trajectory_data.hpp"
@@ -66,8 +67,11 @@ namespace System::Robot {
             /**
              * @brief Execute a series of movements using 3 motors.
              * @param[in] path_queue_ptr Pointer to path segments queue.
+             * @param[in] stopCallback Callable that should return true if the robot is required to stop.
              */
-            void execute_routine(path_list_t path_queue_ptr);
+            void execute_routine(path_list_t path_queue_ptr, std::function<bool()> stopCallback);
+
+            void resume_execution();
 
 
         private:
@@ -84,8 +88,9 @@ namespace System::Robot {
             const double sampling_period_sec;
             isrTimerCallback_t move_motor_timer_callback = nullptr;
 
-            atomic_bool cancel_flag;
-            atomic_bool pause_flag;
+            std::function<bool()> stopCallbackFnc;
+            bool pause_flag;
+            std::list<path_params_t>::iterator last_iter;
             volatile bool finished = false;
 
             volatile double w = 0;
@@ -120,6 +125,10 @@ namespace System::Robot {
              * @brief Clean next path segment pointer.
              */
             void clean_trajectory_buffer();
+
+            void clear_vars();
+
+            void mainExecution();
     };
 
 } // namespace System::Robot

@@ -24,7 +24,8 @@ namespace Communication {
     constexpr RxMessageId TRAJECTORY_DATA = 0x04;
     constexpr RxMessageId CANCEL_OPERATION = 0x05;
     constexpr RxMessageId START_OPERATION = 0x06;
-    constexpr RxMessageId EMERGENCY_STOP = 0x07;
+    constexpr RxMessageId STOP_OPERATION = 0x07;
+    constexpr RxMessageId EMERGENCY_STOP = 0x08;
 
     typedef struct 
     {
@@ -46,6 +47,8 @@ namespace Communication {
 
     void startOperationCallback(const volatile uint8_t * msgData);
 
+    void stopOperationCallback(const volatile uint8_t * msgData);
+
     void emergencyStopCallback(const volatile uint8_t * msgData);
 
     const std::unordered_map<RxMessageId, RxMessageDataTemplate> messageDictionary =
@@ -57,6 +60,7 @@ namespace Communication {
         {TRAJECTORY_DATA, {10, &receiveTrajectoryDataCallback}},
         {CANCEL_OPERATION, {0, &cancelOperationCallback}},
         {START_OPERATION, {0, &startOperationCallback}},
+        {STOP_OPERATION, {0, &stopOperationCallback}},
         {EMERGENCY_STOP, {0, &emergencyStopCallback}}
     };
 

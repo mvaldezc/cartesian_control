@@ -17,7 +17,7 @@ enum class Action : uint8_t
 {
     Cancel = 0x00,
     Start = 0x01,
-    Next = 0x02,
+    Stop = 0x02,
     Done = 0x03,
     Jog = 0x04,
     Program = 0x05,
@@ -31,7 +31,8 @@ enum class MachineState : uint8_t
     LoadProgram = 0x01,
     WaitStart = 0x02,
     ExecuteProgram = 0x03,
-    Jog = 0x04,
+    ProgramStop = 0x04,
+    Jog = 0x05,
     EmergencyStop = 0xFF
 };
 
@@ -111,7 +112,7 @@ class StateManager
 
         void machineProcess();
 
-        void setAction(Action instruction);
+        void setAction(Action && instruction);
 
         void setEmergencyStop();
 
