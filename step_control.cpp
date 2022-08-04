@@ -99,7 +99,7 @@ int main()
     bool started = false;
         
     while(true){   
-        busy_wait_ms(200);
+        busy_wait_ms(200); // This state machine takes min 200ms to change states
         switch (stateManager->getMachineState())
         {
             case MachineState::ExecuteProgram:

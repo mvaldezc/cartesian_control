@@ -189,11 +189,9 @@ namespace Algorithm::TrajectoryGeneration {
     class AdvancedInterpolation : public ITrajectoryInterpolation {
         
         enum class InterpType {UpDown, UpUp, DownDown, DownUp};
-        
+
         public:
-            enum class JointType {Zero, Continuous, Half};
-            AdvancedInterpolation(unsigned int delta_pos, double delta_time, JointType beginning, JointType ending,
-            double vel_0, double vel_f);
+            AdvancedInterpolation(unsigned int delta_pos, double delta_time, double vel_0, double vel_f);
 
             double interpolateMotion(double time) override;
 
@@ -202,9 +200,13 @@ namespace Algorithm::TrajectoryGeneration {
             const double accel_max_abs = 1500; // [steps/s^2]
 
             double a[6] = {0};
-            double tb = 0;
-            double qb = 0;
-            double vel_const = 0;
+            double a_0[6] = {0};
+            double a_f[6] = {0};
+            double tb = 0, tb_0 = 0, tb_f = 0;
+            double qb = 0, qb_0 = 0, qb_f = 0;
+            double vel_const = 0, vel_0, vel_f;
+            double v_start_0 = 0, v_end_0 = 0, v_start_f = 0, v_end_f = 0;
+            double v_max_0 = 0, v_min_0 = 0, v_max_f = 0, v_min_f = 0;
             double return_val = 0;
             bool activate_linear = false;
             bool is_not_achievable = false;

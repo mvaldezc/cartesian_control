@@ -205,21 +205,24 @@ namespace Algorithm::TrajectoryGeneration {
 
     //****************************** Advanced Linear Interpolation ******************************//
 
-    AdvancedInterpolation::AdvancedInterpolation(unsigned int delta_pos, double delta_time, JointType beginning, JointType ending,
+    AdvancedInterpolation::AdvancedInterpolation(unsigned int delta_pos, double delta_time,
         double vel_0, double vel_f) : ITrajectoryInterpolation(delta_pos, delta_time)
+        , vel_0(vel_0), vel_f(vel_f)
     {
+        /*************** Check if movement is physically possible ***************/
         if(delta_pos == 0 || delta_time <= 0.0)
         {
             is_not_achievable = true;
             return;
         }
-        if((double) delta_pos / delta_time > vel_max_abs || vel_0 > vel_max_abs || vel_f > vel_max_abs)
+        if((double) delta_pos / delta_time > vel_max_abs || vel_0 > vel_max_abs 
+            || vel_f > vel_max_abs || vel_0 < 0.0 || vel_f < 0.0)
         {
             is_not_achievable = true;
             return;
         }
 
-        if (beginning == JointType::Zero && ending == JointType::Zero)
+        if (vel_0 == 0.0 && vel_f == 0.0) // ZERO - ZERO speed case
         {   
             // Check accel_max is not overpassed.
             if((double) delta_pos > (double) accel_max_abs * delta_time * delta_time / 6)
@@ -229,8 +232,7 @@ namespace Algorithm::TrajectoryGeneration {
                 return;
             }
             
-            volatile double temp = accel_max_abs * (-6 * (double) delta_pos + accel_max_abs * delta_time * delta_time);
-            volatile double temp2 = sqrt(temp);
+            // Calculate interpolation characteristics
             vel_const = (double) 1/3 * (accel_max_abs * delta_time - sqrt(accel_max_abs * (-6 * (double) delta_pos + accel_max_abs * delta_time * delta_time)));
             qb = (double) 3 * (vel_const * vel_const) / (4 * accel_max_abs);
             tb = (double) 2 * qb / (vel_const);
@@ -243,13 +245,13 @@ namespace Algorithm::TrajectoryGeneration {
                 return;
             }
 
+            // Calculate interpolation parameters
             a[1] = vel_const;
             a[3] = (double) 4 * accel_max_abs * accel_max_abs / (9 * vel_const);
             a[4] = (double) - 4 * accel_max_abs * accel_max_abs * accel_max_abs / (27 * vel_const * vel_const);
         }
-        else if(beginning == JointType::Continuous && ending == JointType::Continuous   ||
-                beginning == JointType::Zero && ending == JointType::Continuous         ||
-                beginning == JointType::Continuous && ending == JointType::Zero         )
+
+        else // CONTINUOUS-ZERO ZER0-CONTINUOUS CONTINUOUS-CONTINUOUS cases
         {
             /******************* Check interpolation direction *******************/
             /* Depending on whether vel_0 or vel_f is bigger, interpolation can change its direction.
@@ -308,24 +310,98 @@ namespace Algorithm::TrajectoryGeneration {
              * These only happens for UpDown and DownUp types.
              * 
              */
-
+            
+            // Check accel_max is not overpassed.
             double val_a1 = (double) accel_max_abs * delta_time * delta_time / 6;
             double val_a2 = (double) 3 * (vel_0 - vel_f) * (vel_0 - vel_f) / (8 * accel_max_abs);
             double val_a3 = (double) 1/2 * delta_time * (vel_0 + vel_f);
 
-            double val_v1 = (double) 3 * (vel_0 * vel_0 + vel_f * vel_f) / (4 * accel_max_abs);
-            double val_v2 = (double) delta_time * vel_max_abs;
-            double val_v3 = (double) (6 * (vel_0 + vel_f) * vel_max_abs - 6 * vel_max_abs * vel_max_abs) / (4 * accel_max_abs);
-
             if(InterpolationDirection == InterpType::UpDown && (double) delta_pos > val_a1 - val_a2 + val_a3
-            || InterpolationDirection == InterpType::DownUp && (double) delta_pos < - val_a1 + val_a2 + val_a3
-            || InterpolationDirection == InterpType::UpDown  && (double) delta_pos > - val_v1 + val_v2 + val_v3 
-            || InterpolationDirection == InterpType::DownUp && (double) delta_pos < val_v1)
+            || InterpolationDirection == InterpType::DownUp && (double) delta_pos < - val_a1 + val_a2 + val_a3)
             {
                     activate_linear = true;
                     vel_const = (double) 1 / delta_time;
                     return;
             }
+
+            // Calculate constant velocity
+            switch (InterpolationDirection)
+            {
+                case InterpType::UpDown:
+                    vel_const = (double)
+                        1/6 * (2 * accel_max_abs * delta_time + 3 * (vel_0 + vel_f) 
+                        - sqrt(4 * accel_max_abs * accel_max_abs * delta_time * delta_time 
+                        - 9 * (vel_0 - vel_f) * (vel_0 - vel_f) + 12 * accel_max_abs * 
+                        (-2 * (double) delta_pos + delta_time * (vel_0 + vel_f))));
+
+                    v_min_0 = vel_0; v_max_0 = vel_const;
+                    v_min_f = vel_f; v_max_f = vel_const;
+
+                    break;
+                case InterpType::DownUp:
+                    vel_const = (double)
+                        1/6 * (-2 * accel_max_abs * delta_time + 3 * (vel_0 + vel_f) 
+                        + sqrt(24 * accel_max_abs * (double) delta_pos + 4 * accel_max_abs * accel_max_abs 
+                        * delta_time * delta_time - 9 * (vel_0 - vel_f) * (vel_0 - vel_f) 
+                        - 12 * accel_max_abs * delta_time * (vel_0 + vel_f)));
+                    
+                    v_min_0 = vel_const; v_max_0 = vel_0;
+                    v_min_f = vel_const; v_max_f = vel_f;
+
+                    break;
+                case InterpType::UpUp:
+                    vel_const = (double)
+                        (4 * accel_max_abs * (double) delta_pos + 3 * vel_0 * vel_0 - 3 * vel_f * vel_f) 
+                        / (4 * accel_max_abs * delta_time + 6 * vel_0 - 6 * vel_f);
+                    
+                    v_min_0 = vel_0; v_max_0 = vel_const;
+                    v_min_f = vel_const; v_max_f = vel_f;
+
+                    break;
+                case InterpType::DownDown:
+                    vel_const = (double)
+                        (4 * accel_max_abs * (double) delta_pos - 3 * vel_0 * vel_0 + 3 * vel_f * vel_f) 
+                        / (4 * accel_max_abs * delta_time - 6 * vel_0 + 6 * vel_f);
+
+                    v_min_0 = vel_const; v_max_0 = vel_0;
+                    v_min_f = vel_f; v_max_f = vel_const;
+
+                    break; 
+            }
+
+            // Check vel_max is not overpassed.
+            if(vel_const > vel_max_abs)
+            {
+                activate_linear = true;
+                vel_const = (double) 1 / delta_time;
+                return;
+            }
+
+            // Calculate interpolation characteristics
+            qb_0 = (double) 3 * (v_max_0 * v_max_0 - v_min_0 * v_min_0) / (4 * accel_max_abs);
+            qb_f = (double) 3 * (v_max_f * v_max_f - v_min_f * v_min_f) / (4 * accel_max_abs);
+            tb_0 = (double) 2 * qb_0 / (vel_0 + vel_const);
+            tb_f = (double) 2 * qb_f / (vel_f + vel_const);
+
+            // Calculate interpolation parameters
+            v_start_0 = vel_0; v_end_0 = vel_const;
+            v_start_f = vel_const; v_end_f = vel_f;
+
+            a_0[1] = v_start_0;
+            a_0[3] = (double) (10 * qb_0 - (6 * v_start_0 + 4 * v_end_0) * delta_time) 
+                / (delta_time * delta_time * delta_time);
+            a_0[4] = (double) (-15 * qb_0 + (8 * v_start_0 + 7 * v_end_0) * delta_time) 
+                / (delta_time * delta_time * delta_time * delta_time);
+            a_0[5] = (double) (6 * qb_0 - 3* (v_start_0 + v_end_0) * delta_time) 
+                / (delta_time * delta_time * delta_time * delta_time * delta_time);
+
+            a_f[1] = v_start_f;
+            a_f[3] = (double) (10 * qb_f - (6 * v_start_f + 4 * v_end_f) * delta_time) 
+                / (delta_time * delta_time * delta_time);
+            a_f[4] = (double) (-15 * qb_f + (8 * v_start_f + 7 * v_end_f) * delta_time) 
+                / (delta_time * delta_time * delta_time * delta_time);
+            a_f[5] = (double) (6 * qb_f - 3* (v_start_f + v_end_f) * delta_time) 
+                / (delta_time * delta_time * delta_time * delta_time * delta_time);
         }        
     }
 
@@ -337,22 +413,45 @@ namespace Algorithm::TrajectoryGeneration {
             {
                 return vel_const * time;
             }
-            if (time < tb)
+            if(vel_0 == 0.0 && vel_f == 0.0)
             {
-                return_val = time * time * time * (a[3] + a[4] * time);
-            }
-            else if (time >= tb && time <= d_time - tb)
-            {
-                return_val = (double) vel_const * (time - tb) + qb;
-            }
-            else if (time > d_time - tb && time <= d_time)
-            {
-                double time_c = time - d_time + tb;
-                return_val = a[1] * time_c - time_c * time_c * time_c * (a[3] + a[4] * time_c) + d_pos - qb;
+                if (time < tb)
+                {
+                    return_val = time * time * time * (a[3] + a[4] * time);
+                }
+                else if (time >= tb && time <= d_time - tb)
+                {
+                    return_val = (double) vel_const * (time - tb) + qb;
+                }
+                else if (time > d_time - tb && time <= d_time)
+                {
+                    double time_c = time - d_time + tb;
+                    return_val = a[1] * time_c - time_c * time_c * time_c * (a[3] + a[4] * time_c) + d_pos - qb;
+                }
+                else
+                {
+                    return_val = 0.0;
+                }
             }
             else
             {
-                return_val = 0.0;
+                if (time < tb_0)
+                {
+                    return_val = a_0[1] * time + time * time * time * (a_0[3] + a_0[4] * time);
+                }
+                else if (time >= tb_0 && time <= d_time - tb_0)
+                {
+                    return_val = vel_const * (time - tb_0) + qb_0;
+                }
+                else if (time > d_time - tb_f && time <= d_time)
+                {
+                    double time_c = time - d_time + tb_f;
+                    return_val = a_f[1] * time_c + time_c * time_c * time_c * (a_f[3] + a_f[4] * time_c) + d_pos - qb_f;
+                }
+                else
+                {
+                    return_val = 0.0;
+                }
             }
             return return_val / d_pos;
         }
@@ -383,8 +482,7 @@ namespace Algorithm::TrajectoryGeneration {
                 path_segment_ptr = new TrapezoidInterpolation(delta_pos, delta_time);
                 break;
             case InterpolationType::AdvancedPoly:
-                path_segment_ptr = new AdvancedInterpolation(delta_pos, delta_time, 
-                AdvancedInterpolation::JointType::Zero, AdvancedInterpolation::JointType::Zero, 0, 0);
+                path_segment_ptr = new AdvancedInterpolation(delta_pos, delta_time, 0, 0);
                 break;
         }
     }
