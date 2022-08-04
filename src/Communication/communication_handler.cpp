@@ -32,8 +32,7 @@ namespace Communication {
     void downloadProgramCallback(const volatile uint8_t * msgData) {
         if(stateManager->getMachineState() == MachineState::LoadProgram)
         {
-            path_list_t empty;
-            std::swap((*pathList), (*empty)); // to erase data structure quickly
+            pathList->clear();
             programSize = * msgData;
             dataCounter = 0;
         }

@@ -1,85 +1,45 @@
-from typing import List
 from smbus2 import SMBus
-from time import sleep
 
 pico_addr = 85 # bus address 
 i2c = SMBus(1) # indicates /dev/i2c-1
 
-numb = 256
+msgids = {"CHANGE_TO_JOG" : 0, "CHANGE_TO_PROGRAM" : 1, "CHANGE_TO_LOAD" : 2, "DOWNLOAD_PROGRAM" : 3,
+"TRAJECTORY_DATA" : 4, "CANCEL_OPERATION" : 5, "START_OPERATION" : 6, "STOP_OPERATION" : 7, "EMERGENCY_STOP" : 8}
 
-empty = []
-data = [20, 21, 22, 23]
-
-print("Enter 1 for ON or 0 for OFF")
-while True :
-    
+def send_message(msgid, data = []):
     try:
-        #i2c.write_byte(pico_addr,numb)
-        i2c.write_block_data(pico_addr,0, empty)
-        print("data sent")
+        i2c.write_block_data(pico_addr,msgid, data)
+        print("data sent, msgid: " + str(msgid) + " , dataSize: " + str(len(data)) + "\n")
     except Exception as e:
-        print("write error")
-        sleep(2)
-        continue
-    
-    sleep(1)
+        print("write error\n")
 
-    try:
-        #i2c.write_byte(pico_addr,numb)
-        i2c.write_block_data(pico_addr,1, empty)
-        print("data sent")
-    except Exception as e:
-        print("write error")
-        sleep(2)
-        continue
+def change_to_jog():
+    send_message(msgids["CHANGE_TO_JOG"])
 
-    try:
-        #i2c.write_byte(pico_addr,numb)
-        i2c.write_block_data(pico_addr,2, data)
-        print("data sent")
-    except Exception as e:
-        print("write error")
-        sleep(2)
-        continue
+def change_to_program():
+    send_message(msgids["CHANGE_TO_PROGRAM"])
 
-    try:
-        #i2c.write_byte(pico_addr,numb)
-        i2c.write_block_data(pico_addr,3, empty)
-        print("data sent")
-    except Exception as e:
-        print("write error")
-        sleep(2)
-        continue
+def change_to_load():
+    send_message(msgids["CHANGE_TO_LOAD"])
 
-    try:
-        #i2c.write_byte(pico_addr,numb)
-        i2c.write_block_data(pico_addr,4, empty)
-        print("data sent")
-    except Exception as e:
-        print("write error")
-        sleep(2)
-        continue
+def download_program(programSize):
+    assert(type(programSize) == int)
+    send_message(msgids["DOWNLOAD_PROGRAM"], [programSize])
 
-    try:
-        #i2c.write_byte(pico_addr,numb)
-        i2c.write_block_data(pico_addr,5, empty)
-        print("data sent")
-    except Exception as e:
-        print("write error")
-        sleep(2)
-        continue
-    
-    read = 0
-    while read == 0:
-        try:
-            msg = i2c.read_byte(pico_addr)
-            print("data received : " + str(msg) )
-            read = 1
-        except Exception as e:
-            print("read error")
-            sleep(2)
-            continue
-        sleep(3)
-    
-    sleep(2)
-    
+def send_trajectory_data(data):
+    assert(type(data) == list)
+    send_message(msgids["TRAJECTORY_DATA"], data)
+
+def cancel_operation():
+    send_message(msgids["CANCEL_OPERATION"])
+
+def start_operation():
+    send_message(msgids["START_OPERATION"])
+
+def stop_operation():
+    send_message(msgids["STOP_OPERATION"])
+
+def emergency_stop():
+    send_message(msgids["EMERGENCY_STOP"])
+
+

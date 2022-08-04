@@ -42,7 +42,7 @@ typedef union
     {
         volatile MachineState mode;
         volatile bool emergencyStop;
-        volatile bool actionRequired;
+        volatile bool actionNotRequired;
     } state;
     volatile uint32_t key;
 } MachineData;
@@ -77,7 +77,7 @@ class StateManager
             {
                 .mode = MachineState::Off,
                 .emergencyStop = false,
-                .actionRequired = false,
+                .actionNotRequired = true,
             }
         };
         critical_section_t stateManagerLock;

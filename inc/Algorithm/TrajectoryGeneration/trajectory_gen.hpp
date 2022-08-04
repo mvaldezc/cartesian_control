@@ -40,12 +40,12 @@ namespace Algorithm::TrajectoryGeneration {
      */
     enum class InterpolationType
     {
-        LinearPoly,         ///< Linear path shape.
-        P2P_CubicPoly,      ///< Cubic polynomial time scaling (point to point behavior).
-        P2P_QuinticPoly,    ///< Quintic polynomial time scaling (point to point behavior).
-        P2P_SepticPoly,     ///< Septic polynomial time scaling (point to point behavior).
-        P2P_TrapezoidPoly,  ///< Trapezoid speed motion profile (point to point behavior).
-        AdvancedPoly        ///< S-curve speed motion profile (speed to speed behavior).
+        LinearPoly = 0,         ///< Linear path shape.
+        P2P_CubicPoly = 1,      ///< Cubic polynomial time scaling (point to point behavior).
+        P2P_QuinticPoly = 2,    ///< Quintic polynomial time scaling (point to point behavior).
+        P2P_SepticPoly = 3,     ///< Septic polynomial time scaling (point to point behavior).
+        P2P_TrapezoidPoly = 4,  ///< Trapezoid speed motion profile (point to point behavior).
+        AdvancedPoly = 5        ///< S-curve speed motion profile (speed to speed behavior).
     };
 
     /**

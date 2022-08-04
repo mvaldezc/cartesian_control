@@ -4,7 +4,7 @@ void StateManager::setAction(Action && instruction)
 {
     critical_section_enter_blocking(&stateManagerLock);
     instance->instructionBuffer = instruction;
-    instance->machineData.state.actionRequired = true;
+    instance->machineData.state.actionNotRequired = false;
     critical_section_exit(&stateManagerLock);
 }
 
@@ -12,7 +12,7 @@ void StateManager::setEmergencyStop()
 {
     critical_section_enter_blocking(&stateManagerLock);
     instance->machineData.state.emergencyStop = true;
-    instance->machineData.state.actionRequired = true;
+    instance->machineData.state.actionNotRequired = false;
     critical_section_exit(&stateManagerLock);
 }
 
@@ -36,6 +36,7 @@ void StateManager::machineProcess()
         case (EMERGENCY_ENABLED | static_cast<uint32_t>(MachineState::LoadProgram)):
         case (EMERGENCY_ENABLED | static_cast<uint32_t>(MachineState::WaitStart)):
         case (EMERGENCY_ENABLED | static_cast<uint32_t>(MachineState::ExecuteProgram)):
+        case (EMERGENCY_ENABLED | static_cast<uint32_t>(MachineState::ProgramStop)):
         case (EMERGENCY_ENABLED | static_cast<uint32_t>(MachineState::Jog)):
             machineData.state.mode = MachineState::EmergencyStop;
             printf("EMERGENCY STOP\n");
@@ -136,22 +137,14 @@ void StateManager::machineProcess()
             break;
 
         case (static_cast<uint32_t>(MachineState::EmergencyStop)):
-            switch (instructionBuffer)
-            {
-                case Action::Done:
-                    machineData.state.mode = MachineState::Off;
-                    machineData.state.emergencyStop = false;
-                    printf("Emer -> Off\n");
-                    break;
-                default:
-                    break;
-            }
+            // Needs to be restarted
             break;
 
         default:
             break;
     }
-    machineData.state.actionRequired = false;
+    machineData.state.actionNotRequired = true;
+    instance->instructionBuffer = Action::None;
 
     critical_section_exit(&stateManagerLock);
 }

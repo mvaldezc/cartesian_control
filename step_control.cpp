@@ -19,8 +19,6 @@ using namespace System::Robot;
 void core1_resume();
 void core1_start();
 
-atomic_bool stop = false;
-
 int main()
 {
     //================= Serial initialization ==================
@@ -58,6 +56,7 @@ int main()
     
     printf("System Fully Initialized\n");
 
+    /*
     via_points->push_back(
         {.path_type = static_cast<char>(InterpolationType::AdvancedPoly),
          .dir_x = static_cast<bool>(MotorDirection::Clockwise),
@@ -94,7 +93,9 @@ int main()
          .pos_x = 100,
          .pos_y = 0,
          .pos_z = 0});
+    */
 
+    atomic_bool stop = false;
     bool started = false;
         
     while(true){   
@@ -105,13 +106,15 @@ int main()
                 if(started && stop)
                 {
                     stop = false;
+                    multicore_reset_core1();
                     multicore_launch_core1(core1_resume);
                     multicore_fifo_push_blocking((uint32_t) &welding_system);
                 }
-                else
+                else if(!started && stop)
                 {
                     stop = false;
-                    started = true;   
+                    started = true;
+                    multicore_reset_core1();
                     multicore_launch_core1(core1_start);
                     multicore_fifo_push_blocking((uint32_t) &welding_system);
                     multicore_fifo_push_blocking((uint32_t) &via_points);
@@ -124,6 +127,11 @@ int main()
             case MachineState::Off:
                 started = false;
                 stop = true;
+                break;
+            case MachineState::EmergencyStop:
+                started = false;
+                stop = true;
+                welding_system.disable_motors();
                 break;
             default:
                 break;
@@ -140,11 +148,13 @@ void core1_start()
     // Once it stops, we check if it executed entire routine
     CartesianRobotClient * welding = (CartesianRobotClient *) multicore_fifo_pop_blocking();
     path_list_t * via_points = (path_list_t *) multicore_fifo_pop_blocking();
+    atomic_bool * stop = (atomic_bool *) multicore_fifo_pop_blocking();
     StateManager * stateManager = StateManager::getInstance();
-    welding->execute_routine(*via_points, [&stop](){if(stop) return true;});
+    welding->execute_routine(*via_points, [stop](){if(*stop) return true; return false;});
     if(welding->routine_finished)
     {
         stateManager->setAction(Action::Done);
+        stateManager->machineProcess();
     }
 }
 
@@ -160,5 +170,6 @@ void core1_resume()
     if(welding->routine_finished)
     {
         stateManager->setAction(Action::Done);
+        stateManager->machineProcess();
     }
 }
