@@ -70,6 +70,7 @@ namespace Motor {
 
             /**
              * @brief Set motor's direction of rotation.
+             * @param[in] direction Direction of rotation. (CW / CCW)
              */
             void setDirection(MotorDirection direction) override;
 

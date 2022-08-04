@@ -34,19 +34,23 @@
 
 namespace Algorithm::TrajectoryGeneration {
 
+    /**
+     * @enum InterpolationType
+     * @brief Specifies the motion profile used for a desired path.
+     */
     enum class InterpolationType
     {
-        LinearPoly,
-        CubicPoly,
-        QuinticPoly,
-        SepticPoly,
-        TrapezoidPoly,
-        SmoothPoly
+        LinearPoly,         ///< Linear path shape.
+        P2P_CubicPoly,      ///< Cubic polynomial time scaling (point to point behavior).
+        P2P_QuinticPoly,    ///< Quintic polynomial time scaling (point to point behavior).
+        P2P_SepticPoly,     ///< Septic polynomial time scaling (point to point behavior).
+        P2P_TrapezoidPoly,  ///< Trapezoid speed motion profile (point to point behavior).
+        AdvancedPoly        ///< S-curve speed motion profile (speed to speed behavior).
     };
 
     /**
      * @interface ITrajectoryInterpolation
-     * @brief Interface for motion description of a path segment.
+     * @brief Interface for motion profile generators.
      */
     class ITrajectoryInterpolation {
         public:
@@ -61,7 +65,7 @@ namespace Algorithm::TrajectoryGeneration {
     };
 
     /**
-     * @brief Define a path segment with motion described by linear polynomial.
+     * @brief Defines a path segment with motion described by linear polynomial time scaling.
      * It allows to specify position constraints at boundary values of the segment.
      */ 
     class LinearInterpolation : public ITrajectoryInterpolation {
@@ -81,7 +85,7 @@ namespace Algorithm::TrajectoryGeneration {
     };
 
     /**
-     * @brief Define a path segment with motion described by cubic polynomial.
+     * @brief Defines a path segment with motion described by cubic polynomial time scaling.
      * It allows to specify position constraints at boundary values of the segment.
      * Point-to-Point behavior so velocity at boundary values is set to zero.
      */
@@ -102,7 +106,7 @@ namespace Algorithm::TrajectoryGeneration {
     };
 
     /**
-     * @brief Define a path segment with motion described by quintic polynomial.
+     * @brief Define a path segment with motion described by quintic polynomial time scaling.
      * It allows to specify position at boundary values of the segment.
      * Point-to-Point behavior so velocity and acceleration at boundary values
      * are set to zero.
@@ -125,7 +129,7 @@ namespace Algorithm::TrajectoryGeneration {
     };
 
     /**
-     * @brief Define a path segment with motion described by septic polynomial.
+     * @brief Define a path segment with motion described by septic polynomial time scaling.
      * It allows to specify position at boundary values of the segment.
      * Point-to-Point behavior so velocity, acceleration and jerk at boundary values
      * are set to zero.
@@ -162,6 +166,7 @@ namespace Algorithm::TrajectoryGeneration {
             double thb = 0;
             bool check_flag = false;
             bool activate_linear = false;
+            bool other_category = false;
     };
 
     class SmoothInterpolation : public ITrajectoryInterpolation {
@@ -181,6 +186,30 @@ namespace Algorithm::TrajectoryGeneration {
             bool activate_linear = false;
     };
 
+    class AdvancedInterpolation : public ITrajectoryInterpolation {
+        
+        enum class InterpType {UpDown, UpUp, DownDown, DownUp};
+        
+        public:
+            enum class JointType {Zero, Continuous, Half};
+            AdvancedInterpolation(unsigned int delta_pos, double delta_time, JointType beginning, JointType ending,
+            double vel_0, double vel_f);
+
+            double interpolateMotion(double time) override;
+
+        private:
+            const double vel_max_abs = 2000; // [steps/s]
+            const double accel_max_abs = 1500; // [steps/s^2]
+
+            double a[6] = {0};
+            double tb = 0;
+            double qb = 0;
+            double vel_const = 0;
+            double return_val = 0;
+            bool activate_linear = false;
+            bool is_not_achievable = false;
+    };
+
     /**
      * @brief Static class that manages trajectory interpolation types. Based on Factory Method design pattern.
      */
@@ -189,12 +218,12 @@ namespace Algorithm::TrajectoryGeneration {
         public: 
             /**
              * @brief Prepares a specific trajectory interpolation type.
+             * @param[out] path_segment_ptr Pointer to trajectory interpolation that will be used in next path.
              * @param[in] path_type Type of the next required interpolation.
              * @param[in] delta_pos Amount of steps for next path_segment.
              * @param[in] delta_time Amount of time for next path_segment.
-             * @return Pointer to trajectory interpolation that will be used in next path.
              */
-            static std::unique_ptr<ITrajectoryInterpolation> create(
+            static void create(ITrajectoryInterpolation * & path_segment_ptr,
                 InterpolationType path_type, unsigned int delta_pos, double delta_time);
         private:
             InterpolationFactory() = default;

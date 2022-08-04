@@ -6,6 +6,7 @@
 #include "cartesian_robot.hpp"
 #include "state_manager.hpp"
 #include "atomic.hpp"
+#include "pico/multicore.h"
 
 //================ Global variables definition ================
 
@@ -15,74 +16,107 @@ using namespace Motor;
 using namespace Sampler;
 using namespace System::Robot;
 
+void core1_resume();
+void core1_start();
+
+atomic_bool stop = false;
+
 int main()
 {
     //================= Serial initialization ==================
     stdio_init_all();
     printf("Uart init completed\n");
-
+    
     //============== State Manager initialization ==============
     StateManager * stateManager = StateManager::getInstance();
     printf("State Machine init completed\n");
-
+    
     //============== Data Structure instantiation ==============
     path_list_t via_points = createPathList();
-    printf("Data Structure instantiated\n");
+    installDataContainer(via_points);
+    printf("Path container init completed\n");
 
     //==================== Motor definition ====================
-    std::shared_ptr<IMotor> motor_x(new Stepper(200, 4, 5, 6));
+    std::shared_ptr<IMotor> motor_x(new Stepper(200, 8, 7, 6));
     std::shared_ptr<IMotor> motor_y(new Stepper(200, 7, 8, 9));
     std::shared_ptr<IMotor> motor_z(new Stepper(200, 10, 11, 12));
     printf("Motor def completed\n");
 
     //==================== Timer definition ====================
-    constexpr uint64_t sampling_period_us = 250; // 200
+    constexpr uint64_t sampling_period_us = 250; 
     TimerIsrSampler motor_sampler(sampling_period_us);
     printf("Timer def completed\n");
 
     //============= Cartesian Robot initialization =============
     CartesianRobotClient welding_system(motor_x, motor_y, motor_z, motor_sampler);
+    //CartesianRobotClient welding_system(motor_x, nullptr, nullptr, motor_sampler);
     printf("Robot init completed\n");
-
-    //=============== Data Handler initialization ===============
-    installDataContainer(via_points);
-    printf("Data Handler init completed\n");
-
+    
     //=================== I2C initialization ===================
     I2CSlave::init(&rxCallback, &txCallback);
     printf("I2C init completed\n");
-
+    
     printf("System Fully Initialized\n");
 
     via_points->push_back(
-        {.path_type = static_cast<char>(InterpolationType::SmoothPoly),
+        {.path_type = static_cast<char>(InterpolationType::AdvancedPoly),
          .dir_x = static_cast<bool>(MotorDirection::Clockwise),
          .dir_y = static_cast<bool>(MotorDirection::CounterClockwise),
          .dir_z = static_cast<bool>(MotorDirection::Clockwise),
-         .time = 4 * 4000,
+         .time = 5 * 4000,
+         .pos_x = 2000,
+         .pos_y = 0,
+         .pos_z = 0});
+    via_points->push_back(
+        {.path_type = static_cast<char>(InterpolationType::AdvancedPoly),
+         .dir_x = static_cast<bool>(MotorDirection::CounterClockwise),
+         .dir_y = static_cast<bool>(MotorDirection::Clockwise),
+         .dir_z = static_cast<bool>(MotorDirection::Clockwise),
+         .time = 5 * 4000,
          .pos_x = 4000,
-         .pos_y = 4000,
+         .pos_y = 0,
+         .pos_z = 0});
+    via_points->push_back(
+        {.path_type = static_cast<char>(InterpolationType::AdvancedPoly),
+         .dir_x = static_cast<bool>(MotorDirection::Clockwise),
+         .dir_y = static_cast<bool>(MotorDirection::Clockwise),
+         .dir_z = static_cast<bool>(MotorDirection::Clockwise),
+         .time = 10 * 4000,
+         .pos_x = 14000,
+         .pos_y = 0,
+         .pos_z = 0});
+    via_points->push_back(
+        {.path_type = static_cast<char>(InterpolationType::AdvancedPoly),
+         .dir_x = static_cast<bool>(MotorDirection::CounterClockwise),
+         .dir_y = static_cast<bool>(MotorDirection::Clockwise),
+         .dir_z = static_cast<bool>(MotorDirection::Clockwise),
+         .time = 2 * 4000,
+         .pos_x = 100,
+         .pos_y = 0,
          .pos_z = 0});
 
-    /*atomic_*/bool stop = false;
     bool started = false;
-
+        
     while(true){   
         busy_wait_ms(200);
         switch (stateManager->getMachineState())
         {
             case MachineState::ExecuteProgram:
-                stop = false;
-                if(started)
+                if(started && stop)
                 {
-                    welding_system.resume_execution();
+                    stop = false;
+                    multicore_launch_core1(core1_resume);
+                    multicore_fifo_push_blocking((uint32_t) &welding_system);
                 }
                 else
                 {
-                    started = true;
-                    welding_system.execute_routine(via_points, [&stop](){if(stop) return true;});
+                    stop = false;
+                    started = true;   
+                    multicore_launch_core1(core1_start);
+                    multicore_fifo_push_blocking((uint32_t) &welding_system);
+                    multicore_fifo_push_blocking((uint32_t) &via_points);
+                    multicore_fifo_push_blocking((uint32_t) &stop);
                 }
-                stateManager->setAction(Action::Done);
                 break;
             case MachineState::ProgramStop:
                 stop = true;
@@ -96,49 +130,35 @@ int main()
         }
     }
     return 0;
+}
 
-    /*
+void core1_start()
+{
+    // CartesianRobotClient and its parameters are passed to us via the FIFO
+    // We get the stateManager singleton
+    // We execute the fiven routine
+    // Once it stops, we check if it executed entire routine
+    CartesianRobotClient * welding = (CartesianRobotClient *) multicore_fifo_pop_blocking();
+    path_list_t * via_points = (path_list_t *) multicore_fifo_pop_blocking();
+    StateManager * stateManager = StateManager::getInstance();
+    welding->execute_routine(*via_points, [&stop](){if(stop) return true;});
+    if(welding->routine_finished)
+    {
+        stateManager->setAction(Action::Done);
+    }
+}
 
-    path_params_t via_points[5] = {
-        {.path_type = static_cast<char>(InterpolationType::SmoothPoly),
-         .dir_x = static_cast<bool>(MotorDirection::Clockwise),
-         .dir_y = static_cast<bool>(MotorDirection::CounterClockwise),
-         .dir_z = static_cast<bool>(MotorDirection::Clockwise),
-         .time = 4 * 4000,
-         .pos_x = 4000,
-         .pos_y = 4000,
-         .pos_z = 0},
-        {.path_type = static_cast<char>(InterpolationType::TrapezoidPoly),
-         .dir_x = static_cast<bool>(MotorDirection::Clockwise),
-         .dir_y = static_cast<bool>(MotorDirection::Clockwise),
-         .dir_z = static_cast<bool>(MotorDirection::Clockwise),
-         .time = 2 * 4000,
-         .pos_x = 500,
-         .pos_y = 0,
-         .pos_z = 0},
-        {.path_type = static_cast<char>(InterpolationType::TrapezoidPoly),
-         .dir_x = static_cast<bool>(MotorDirection::Clockwise),
-         .dir_y = static_cast<bool>(MotorDirection::Clockwise),
-         .dir_z = static_cast<bool>(MotorDirection::Clockwise),
-         .time = 2 * 4000,
-         .pos_x = 0,
-         .pos_y = 500,
-         .pos_z = 0},
-        {.path_type = static_cast<char>(InterpolationType::SmoothPoly),
-         .dir_x = static_cast<bool>(MotorDirection::CounterClockwise),
-         .dir_y = static_cast<bool>(MotorDirection::CounterClockwise),
-         .dir_z = static_cast<bool>(MotorDirection::Clockwise),
-         .time = 3 * 4000,
-         .pos_x = 4000,
-         .pos_y = 4000,
-         .pos_z = 0},
-        {.path_type = static_cast<char>(InterpolationType::SmoothPoly),
-         .dir_x = static_cast<bool>(MotorDirection::CounterClockwise),
-         .dir_y = static_cast<bool>(MotorDirection::CounterClockwise),
-         .dir_z = static_cast<bool>(MotorDirection::Clockwise),
-         .time = 3 * 4000,
-         .pos_x = 2000,
-         .pos_y = 4000,
-         .pos_z = 0}};
-    */
+void core1_resume()
+{
+    // CartesianRobotClient is passed to us via the FIFO
+    // We get the stateManager singleton
+    // We execute the fiven routine
+    // Once it stops, we check if it executed entire routine
+    CartesianRobotClient * welding = (CartesianRobotClient *) multicore_fifo_pop_blocking();
+    StateManager * stateManager = StateManager::getInstance();
+    welding->resume_execution();
+    if(welding->routine_finished)
+    {
+        stateManager->setAction(Action::Done);
+    }
 }

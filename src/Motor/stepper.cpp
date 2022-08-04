@@ -4,7 +4,7 @@ namespace Motor {
 
     bool Stepper::step()
     {
-        // Return if motor is not enabled or emergency stop happened
+        // Return if motor is not enabled
         if (!enabledFlag){
             return false;
         }

@@ -48,9 +48,6 @@ namespace System::Robot {
                         static_cast<CartesianRobotClient * >(t)->move_motors();
                         return true;
                     };
-                path_segment_buffer.insert({"x", nullptr});
-                path_segment_buffer.insert({"y", nullptr});
-                path_segment_buffer.insert({"z", nullptr});
             }
 
 
@@ -73,9 +70,15 @@ namespace System::Robot {
 
             void resume_execution();
 
+            volatile bool routine_finished = false;
 
         private:
-            std::unordered_map<std::string, std::unique_ptr<ITrajectoryInterpolation> > path_segment_buffer;
+            std::unordered_map<std::string, ITrajectoryInterpolation * > path_segment_buffer =
+            {
+                {"x", nullptr},
+                {"y", nullptr},
+                {"z", nullptr}
+            };
             
             path_list_t path_list;
             path_params_t next_path;
@@ -89,7 +92,6 @@ namespace System::Robot {
             isrTimerCallback_t move_motor_timer_callback = nullptr;
 
             std::function<bool()> stopCallbackFnc;
-            bool pause_flag;
             std::list<path_params_t>::iterator last_iter;
             volatile bool finished = false;
 
@@ -128,7 +130,7 @@ namespace System::Robot {
 
             void clear_vars();
 
-            void mainExecution();
+            void mainLoop();
     };
 
 } // namespace System::Robot
