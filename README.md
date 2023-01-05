@@ -1,7 +1,7 @@
 # step_control
 ## 1. Description
 
-<img src="repo_images/_DSF3367_edit.jpg" align="right" width="505" height="336" />
+<img src="repo_images/_DSF3367_edit.jpg" align="right" width="333" height="222" />
 
 The primary purpose of this repository is to provide a set of core reusable low level features that enable Cartesian Robot (PPP) functionality. This implementation can be tailored to specific robotic applications that have a Cartesian Robot based movement.
 
