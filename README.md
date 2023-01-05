@@ -1,4 +1,4 @@
-# step_control
+# cartesian_control
 ## 1. Description
 
 <img src="repo_images/_DSF3371_edit.jpg" align="right" width="424" height="283"/>
